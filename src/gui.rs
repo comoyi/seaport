@@ -6,7 +6,7 @@ use std::thread;
 use std::time::Duration;
 
 pub fn start() {
-    info!("gui start");
+    info!("start gui");
 
     let _ = Gui::run(Settings {
         window: window::Settings {

@@ -2,7 +2,7 @@ use crate::{api, gui, scanner};
 use log::info;
 
 pub fn start() {
-    info!("app start");
+    info!("start app");
 
     scanner::start();
     api::start();

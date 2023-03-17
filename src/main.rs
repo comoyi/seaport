@@ -5,6 +5,7 @@ mod data;
 mod gui;
 mod log;
 mod scanner;
+mod util;
 
 fn main() {
     config::init_config();
