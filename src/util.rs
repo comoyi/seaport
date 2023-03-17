@@ -1,4 +1,3 @@
-use log::info;
 use std::fs;
 
 pub fn md5_file(path: &str) -> String {
