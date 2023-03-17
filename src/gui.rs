@@ -1,3 +1,4 @@
+use crate::data::ServerStatus;
 use iced::widget::{Button, Column, Container, Row};
 use iced::{theme, window, Application, Command, Element, Renderer, Settings};
 use log::info;
@@ -7,7 +8,7 @@ use std::time::Duration;
 pub fn start() {
     info!("gui start");
 
-    Gui::run(Settings {
+    let _ = Gui::run(Settings {
         window: window::Settings {
             size: (300, 200),
             resizable: true,
@@ -21,13 +22,6 @@ pub fn start() {
 
 struct Gui {
     server_status: ServerStatus,
-}
-
-enum ServerStatus {
-    Starting,
-    Started,
-    Stopping,
-    Stopped,
 }
 
 #[derive(Debug, Clone)]
