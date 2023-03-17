@@ -1,3 +1,8 @@
+use log::info;
+use std::fs;
+
 pub fn md5_file(path: &str) -> String {
-    "".to_string()
+    let f = fs::read(path).unwrap();
+    let s = md5::compute(f);
+    format!("{:x}", s)
 }
