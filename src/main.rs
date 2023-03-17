@@ -1,3 +1,9 @@
+mod api;
+mod gui;
+mod log;
+
 fn main() {
-    println!("Hello, world!");
+    log::init_log();
+    api::start();
+    gui::start();
 }
