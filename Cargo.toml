@@ -15,3 +15,5 @@ serde_repr = "0.1.11"
 md5 = "0.7.0"
 walkdir = "2.3.3"
 notify = "5.1.0"
+tokio = { version = "1.26.0", features = ["full"] }
+axum = "0.6.11"

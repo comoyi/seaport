@@ -2,6 +2,7 @@ use crate::data::{FileInfo, ServerFileInfo};
 use crate::scanner::Scanner;
 use crate::{api, gui};
 use log::info;
+use std::thread;
 
 pub fn start() {
     info!("start app");
@@ -15,6 +16,9 @@ pub fn start() {
     scanner.set_base_path(base_path);
     scanner.start(&mut server_file_info);
 
-    api::start();
+    thread::spawn(move || {
+        api::start();
+    });
+
     gui::start();
 }
