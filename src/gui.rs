@@ -59,7 +59,7 @@ impl Application for Gui {
                 }
                 info!("start server...");
                 d_guard.server_status = ServerStatus::Starting;
-                thread::sleep(Duration::from_secs(1));
+                thread::sleep(Duration::from_millis(100));
                 d_guard.server_status = ServerStatus::Started;
             }
             Message::StopServer => {
@@ -71,7 +71,7 @@ impl Application for Gui {
                 }
                 info!("stop server...");
                 d_guard.server_status = ServerStatus::Stopping;
-                thread::sleep(Duration::from_secs(1));
+                thread::sleep(Duration::from_millis(100));
                 d_guard.server_status = ServerStatus::Stopped;
             }
             Message::Noop => {}

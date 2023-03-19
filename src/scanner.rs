@@ -1,4 +1,4 @@
-use crate::data::{AppData, FileInfo, FileType, ScanStatus};
+use crate::data::{AppData, FileInfo, FileType, ScanStatus, ServerStatus};
 use crate::util;
 use log::{debug, info, warn};
 use std::sync::{Arc, Mutex};
@@ -24,9 +24,19 @@ impl Scanner {
         info!("start scanner");
 
         loop {
-            thread::sleep(Duration::from_secs(3));
+            let mut d_guard = data.lock().unwrap();
+            match d_guard.server_status {
+                ServerStatus::Started => {
+                    drop(d_guard);
+                    self.scan(&self.base_path, data.clone());
+                }
+                _ => {
+                    d_guard.server_file_info.scan_status = ScanStatus::Wait;
+                    drop(d_guard);
+                }
+            }
 
-            self.scan(&self.base_path, data.clone());
+            thread::sleep(Duration::from_secs(3));
         }
     }
 
