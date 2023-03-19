@@ -3,7 +3,9 @@ use serde_repr::Serialize_repr;
 
 #[derive(Serialize)]
 pub struct AppData {
+    pub server_status: ServerStatus,
     pub server_file_info: ServerFileInfo,
+    pub announcement: Announcement,
 }
 
 impl AppData {
@@ -15,16 +17,19 @@ impl AppData {
 impl Default for AppData {
     fn default() -> Self {
         AppData {
+            server_status: ServerStatus::Stopped,
             server_file_info: ServerFileInfo::new(),
+            announcement: Announcement::default(),
         }
     }
 }
 
+#[derive(Serialize)]
 pub enum ServerStatus {
-    Starting,
-    Started,
-    Stopping,
-    Stopped,
+    Starting = 10,
+    Started = 20,
+    Stopping = 30,
+    Stopped = 40,
 }
 
 #[derive(Serialize_repr)]
@@ -38,6 +43,7 @@ pub enum ScanStatus {
 
 #[derive(Serialize)]
 pub struct ServerFileInfo {
+    #[serde(rename = "status")]
     pub scan_status: ScanStatus,
     pub files: Vec<FileInfo>,
 }
@@ -79,6 +85,27 @@ impl FileInfo {
         FileInfo {
             relative_path: "".to_string(),
             file_type: FileType::Unknown,
+            hash: "".to_string(),
+        }
+    }
+}
+
+#[derive(Serialize)]
+pub struct Announcement {
+    pub content: String,
+    hash: String,
+}
+
+impl Announcement {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Default for Announcement {
+    fn default() -> Self {
+        Announcement {
+            content: "".to_string(),
             hash: "".to_string(),
         }
     }

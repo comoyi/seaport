@@ -23,7 +23,6 @@ pub fn start(data: Arc<Mutex<AppData>>) {
 }
 
 struct Gui {
-    server_status: ServerStatus,
     data: Arc<Mutex<AppData>>,
 }
 
@@ -41,13 +40,7 @@ impl Application for Gui {
     type Flags = Arc<Mutex<AppData>>;
 
     fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        (
-            Self {
-                server_status: ServerStatus::Stopped,
-                data: flags,
-            },
-            Command::none(),
-        )
+        (Self { data: flags }, Command::none())
     }
 
     fn title(&self) -> String {
@@ -55,30 +48,31 @@ impl Application for Gui {
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+        let mut d_guard = self.data.lock().unwrap();
         match message {
             Message::StartServer => {
-                match self.server_status {
+                match d_guard.server_status {
                     ServerStatus::Started => {
                         return Command::none();
                     }
                     _ => {}
                 }
                 info!("start server...");
-                self.server_status = ServerStatus::Starting;
+                d_guard.server_status = ServerStatus::Starting;
                 thread::sleep(Duration::from_secs(1));
-                self.server_status = ServerStatus::Started;
+                d_guard.server_status = ServerStatus::Started;
             }
             Message::StopServer => {
-                match self.server_status {
+                match d_guard.server_status {
                     ServerStatus::Stopped => {
                         return Command::none();
                     }
                     _ => {}
                 }
                 info!("stop server...");
-                self.server_status = ServerStatus::Stopping;
+                d_guard.server_status = ServerStatus::Stopping;
                 thread::sleep(Duration::from_secs(1));
-                self.server_status = ServerStatus::Stopped;
+                d_guard.server_status = ServerStatus::Stopped;
             }
             Message::Noop => {}
         }
@@ -90,7 +84,10 @@ impl Application for Gui {
         let mut scan_light = Button::new("    ").on_press(Message::Noop);
         let mut btn_start = Button::new("启动").on_press(Message::StartServer);
         let mut btn_stop = Button::new("停止").on_press(Message::StopServer);
-        match self.server_status {
+
+        let d_guard = self.data.lock().unwrap();
+
+        match d_guard.server_status {
             ServerStatus::Starting => {
                 btn_start = btn_start.style(theme::Button::Secondary);
                 btn_stop = btn_stop.style(theme::Button::Primary);
@@ -113,7 +110,6 @@ impl Application for Gui {
             }
         }
 
-        let d_guard = self.data.lock().unwrap();
         match d_guard.server_file_info.scan_status {
             ScanStatus::Wait => {
                 scan_light = scan_light.style(theme::Button::Secondary);

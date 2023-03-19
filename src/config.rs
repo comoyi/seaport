@@ -6,6 +6,7 @@ use std::path::Path;
 struct Config {
     log_level: String,
     port: i64,
+    dir: String,
 }
 
 pub fn init_config() {
