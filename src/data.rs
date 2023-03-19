@@ -1,7 +1,24 @@
 use serde::Serialize;
 use serde_repr::Serialize_repr;
 
-struct Data {}
+#[derive(Serialize)]
+pub struct AppData {
+    pub server_file_info: ServerFileInfo,
+}
+
+impl AppData {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Default for AppData {
+    fn default() -> Self {
+        AppData {
+            server_file_info: ServerFileInfo::new(),
+        }
+    }
+}
 
 pub enum ServerStatus {
     Starting,
@@ -27,6 +44,12 @@ pub struct ServerFileInfo {
 
 impl ServerFileInfo {
     pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Default for ServerFileInfo {
+    fn default() -> Self {
         ServerFileInfo {
             scan_status: ScanStatus::Wait,
             files: vec![],

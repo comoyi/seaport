@@ -1,24 +1,29 @@
-use crate::data::{FileInfo, ServerFileInfo};
+use crate::data::{AppData, ServerFileInfo};
 use crate::scanner::Scanner;
 use crate::{api, gui};
-use log::info;
+use log::{debug, info};
+use std::sync::{Arc, Mutex};
 use std::thread;
 
 pub fn start() {
     info!("start app");
 
-    let mut server_file_info = ServerFileInfo::new();
-    let mut files: Vec<FileInfo> = vec![];
-    server_file_info.files = files;
-
-    let mut scanner = Scanner::new();
-    let base_path = "/tmp/a";
-    scanner.set_base_path(base_path);
-    scanner.start(&mut server_file_info);
+    let app_data = AppData::new();
+    let d = Arc::new(Mutex::new(app_data));
+    let d1 = Arc::clone(&d);
+    let d2 = Arc::clone(&d);
+    let d3 = Arc::clone(&d);
 
     thread::spawn(move || {
-        api::start();
+        let mut scanner = Scanner::new();
+        let base_path = "/tmp/a";
+        scanner.set_base_path(base_path);
+        scanner.start(d1);
     });
 
-    gui::start();
+    thread::spawn(move || {
+        api::start(d2);
+    });
+
+    gui::start(d3);
 }

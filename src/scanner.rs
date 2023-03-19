@@ -1,6 +1,9 @@
-use crate::data::{FileInfo, FileType, ScanStatus, ServerFileInfo};
+use crate::data::{AppData, FileInfo, FileType, ScanStatus};
 use crate::util;
 use log::{debug, info, warn};
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 
 pub struct Scanner {
     base_path: String,
@@ -15,16 +18,21 @@ impl Scanner {
     pub fn set_base_path(&mut self, base_path: &str) {
         self.base_path = base_path.to_string();
     }
-    pub fn start(&self, server_file_info: &mut ServerFileInfo) {
+    pub fn start(&self, data: Arc<Mutex<AppData>>) {
         info!("start scanner");
 
-        self.scan(&self.base_path, server_file_info);
+        loop {
+            thread::sleep(Duration::from_secs(3));
+
+            self.scan(&self.base_path, data.clone());
+        }
     }
 
-    fn scan(&self, base_path: &str, server_file_info: &mut ServerFileInfo) {
+    fn scan(&self, base_path: &str, data: Arc<Mutex<AppData>>) {
         let mut files: Vec<FileInfo> = vec![];
-
-        server_file_info.scan_status = ScanStatus::Scanning;
+        let mut d_guard = data.lock().unwrap();
+        d_guard.server_file_info.scan_status = ScanStatus::Scanning;
+        drop(d_guard);
 
         debug!("{}", "scan start");
 
@@ -63,11 +71,16 @@ impl Scanner {
             Err(_) => {}
         });
 
-        server_file_info.files = files;
-        server_file_info.scan_status = ScanStatus::Completed;
+        let mut d_guard = data.lock().unwrap();
+        d_guard.server_file_info.files = files;
+        d_guard.server_file_info.scan_status = ScanStatus::Completed;
+        drop(d_guard);
 
         let mut j = String::from("");
-        let jr = serde_json::to_string(&server_file_info);
+        let d_guard = data.lock().unwrap();
+        let sfi = &d_guard.server_file_info;
+        let jr = serde_json::to_string(sfi);
+        drop(d_guard);
         match jr {
             Ok(js) => {
                 j = js;

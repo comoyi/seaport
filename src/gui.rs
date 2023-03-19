@@ -1,11 +1,12 @@
-use crate::data::ServerStatus;
+use crate::data::{AppData, ServerFileInfo, ServerStatus};
 use iced::widget::{Button, Column, Container, Row};
 use iced::{theme, window, Application, Command, Element, Renderer, Settings};
 use log::info;
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-pub fn start() {
+pub fn start(data: Arc<Mutex<AppData>>) {
     info!("start gui");
 
     let _ = Gui::run(Settings {
