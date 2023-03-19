@@ -1,4 +1,4 @@
-use crate::data::{AppData, ServerFileInfo, ServerStatus};
+use crate::data::{AppData, ScanStatus, ServerFileInfo, ServerStatus};
 use iced::widget::{Button, Column, Container, Row};
 use iced::{theme, window, Application, Command, Element, Renderer, Settings};
 use log::info;
@@ -16,6 +16,7 @@ pub fn start(data: Arc<Mutex<AppData>>) {
             decorations: true,
             ..window::Settings::default()
         },
+        flags: data,
         default_font: Some(include_bytes!("../fonts/HarmonyOS_Sans_SC_Regular.ttf")),
         ..Settings::default()
     });
@@ -23,6 +24,7 @@ pub fn start(data: Arc<Mutex<AppData>>) {
 
 struct Gui {
     server_status: ServerStatus,
+    data: Arc<Mutex<AppData>>,
 }
 
 #[derive(Debug, Clone)]
@@ -36,12 +38,13 @@ impl Application for Gui {
     type Executor = iced::executor::Default;
     type Message = Message;
     type Theme = iced::theme::Theme;
-    type Flags = ();
+    type Flags = Arc<Mutex<AppData>>;
 
     fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
         (
             Self {
                 server_status: ServerStatus::Stopped,
+                data: flags,
             },
             Command::none(),
         )
@@ -84,6 +87,7 @@ impl Application for Gui {
 
     fn view(&self) -> Element<'_, Self::Message, Renderer<Self::Theme>> {
         let mut light = Button::new("    ").on_press(Message::Noop);
+        let mut scan_light = Button::new("    ").on_press(Message::Noop);
         let mut btn_start = Button::new("启动").on_press(Message::StartServer);
         let mut btn_stop = Button::new("停止").on_press(Message::StopServer);
         match self.server_status {
@@ -109,14 +113,36 @@ impl Application for Gui {
             }
         }
 
+        let d_guard = self.data.lock().unwrap();
+        match d_guard.server_file_info.scan_status {
+            ScanStatus::Wait => {
+                scan_light = scan_light.style(theme::Button::Secondary);
+            }
+            ScanStatus::Scanning => {
+                scan_light = scan_light.style(theme::Button::Primary);
+            }
+            ScanStatus::Failed => {
+                scan_light = scan_light.style(theme::Button::Destructive);
+            }
+            ScanStatus::Completed => {
+                scan_light = scan_light.style(theme::Button::Positive);
+            }
+        }
+        drop(d_guard);
+
         let mut status_container = Row::new();
         status_container = status_container.padding(10).spacing(10);
         status_container = status_container.push(light);
         status_container = status_container.push(btn_start);
         status_container = status_container.push(btn_stop);
 
+        let mut scan_status_container = Row::new();
+        scan_status_container = scan_status_container.padding(10).spacing(10);
+        scan_status_container = scan_status_container.push(scan_light);
+
         let mut mc = Column::new();
         mc = mc.push(status_container);
+        mc = mc.push(scan_status_container);
 
         let c = Container::new(mc);
 

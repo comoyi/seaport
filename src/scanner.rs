@@ -15,9 +15,11 @@ impl Scanner {
             base_path: "".to_string(),
         }
     }
+
     pub fn set_base_path(&mut self, base_path: &str) {
         self.base_path = base_path.to_string();
     }
+
     pub fn start(&self, data: Arc<Mutex<AppData>>) {
         info!("start scanner");
 
