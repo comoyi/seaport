@@ -90,12 +90,14 @@ impl Application for Gui {
         let dir_label = Text::new("文件夹").width(label_width);
         let dir_input: TextInput<Message> = TextInput::new("", &CONFIG.dir, |_s| -> Message {
             return Message::Noop;
-        });
+        })
+        .width(calc_dir_input_width());
         let port_label = Text::new("端口").width(label_width);
         let port_input: TextInput<Message> =
             TextInput::new("", CONFIG.port.to_string().as_str(), |_s| -> Message {
                 return Message::Noop;
-            });
+            })
+            .width(70);
 
         let d_guard = self.data.lock().unwrap();
 
@@ -159,6 +161,7 @@ impl Application for Gui {
         let port_container = Row::new().push(port_label).push(port_input);
         let config_container = Column::new()
             .padding(10)
+            .spacing(10)
             .push(dir_container)
             .push(port_container);
 
@@ -172,4 +175,16 @@ impl Application for Gui {
         let content = c.into();
         return content;
     }
+}
+
+fn calc_dir_input_width() -> u16 {
+    let min = 200;
+    let max = 500;
+    let mut width = (&CONFIG).dir.len() as u16 * 10;
+    if width < min {
+        width = min;
+    } else if width > max {
+        width = max;
+    }
+    width
 }
