@@ -2,4 +2,4 @@ log_level = 'OFF'
 
 port = 8080
 
-dir = '/tmp/a'
+dir = '/tmp'

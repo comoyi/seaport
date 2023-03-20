@@ -15,18 +15,30 @@ pub struct Config {
 
 pub fn init_config() -> Config {
     let mut b = config::Config::builder();
-    let cp1 = Path::new("config.toml");
-    let cp2 = Path::new("config/config.toml");
-    if cp1.exists() {
-        // println!("Add config file: {:?}", cp1);
-        b = b.add_source(config::File::from(cp1))
-    }
-    if cp2.exists() {
-        // println!("Add config file: {:?}", cp2);
-        b = b.add_source(config::File::from(cp2));
+
+    let cps = vec![
+        "config.toml",
+        // "config/config.toml"
+    ];
+    for cp_str in cps {
+        let cp = Path::new(cp_str);
+        if cp.exists() {
+            // println!("Add config file: {:?}", cp);
+            b = b.add_source(config::File::from(cp))
+        }
     }
     let c = b.build().unwrap();
-    let conf = c.try_deserialize::<Config>().unwrap();
+    let conf_result = c.try_deserialize::<Config>();
+    let conf;
+    match conf_result {
+        Ok(c) => {
+            conf = c;
+        }
+        Err(e) => {
+            println!("load config failed: {}", e.to_string());
+            panic!("load config failed: {}", e.to_string());
+        }
+    }
     // println!("{:?}", conf);
     conf
 }
