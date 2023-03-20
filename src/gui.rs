@@ -1,5 +1,6 @@
 use crate::config::CONFIG;
 use crate::data::{AppData, ScanStatus, ServerStatus};
+use crate::version;
 use iced::widget::{Button, Column, Container, Row, Text, TextInput};
 use iced::{theme, window, Application, Command, Element, Renderer, Settings};
 use log::info;
@@ -45,7 +46,12 @@ impl Application for Gui {
     }
 
     fn title(&self) -> String {
-        String::from("")
+        let mut t = format!("App - v{}", version::VERSION_TEXT);
+        let ct = &CONFIG.title;
+        if ct.len() > 0 {
+            t = format!("{}  {}", t, ct);
+        }
+        t
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {

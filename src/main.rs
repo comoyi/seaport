@@ -9,6 +9,7 @@ mod gui;
 mod log;
 mod scanner;
 mod util;
+mod version;
 
 fn main() {
     // for init config

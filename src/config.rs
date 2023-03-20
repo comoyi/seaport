@@ -1,3 +1,5 @@
+use config::builder::DefaultState;
+use config::ConfigBuilder;
 use lazy_static::lazy_static;
 use serde::Deserialize;
 use std::path::Path;
@@ -11,10 +13,13 @@ pub struct Config {
     pub log_level: String,
     pub port: u16,
     pub dir: String,
+    pub title: String,
 }
 
 pub fn init_config() -> Config {
     let mut b = config::Config::builder();
+
+    b = set_default(b);
 
     let cps = vec![
         "config.toml",
@@ -27,6 +32,7 @@ pub fn init_config() -> Config {
             b = b.add_source(config::File::from(cp))
         }
     }
+
     let c = b.build().unwrap();
     let conf_result = c.try_deserialize::<Config>();
     let conf;
@@ -41,4 +47,15 @@ pub fn init_config() -> Config {
     }
     // println!("{:?}", conf);
     conf
+}
+
+fn set_default(b: ConfigBuilder<DefaultState>) -> ConfigBuilder<DefaultState> {
+    b.set_default("log_level", "TRACE")
+        .unwrap()
+        .set_default("port", 8080)
+        .unwrap()
+        .set_default("dir", "")
+        .unwrap()
+        .set_default("title", "")
+        .unwrap()
 }
