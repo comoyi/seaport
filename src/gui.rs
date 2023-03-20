@@ -1,5 +1,6 @@
-use crate::data::{AppData, ScanStatus, ServerFileInfo, ServerStatus};
-use iced::widget::{Button, Column, Container, Row};
+use crate::config::CONFIG;
+use crate::data::{AppData, ScanStatus, ServerStatus};
+use iced::widget::{Button, Column, Container, Row, Text, TextInput};
 use iced::{theme, window, Application, Command, Element, Renderer, Settings};
 use log::info;
 use std::sync::{Arc, Mutex};
@@ -81,9 +82,20 @@ impl Application for Gui {
 
     fn view(&self) -> Element<'_, Self::Message, Renderer<Self::Theme>> {
         let mut light = Button::new("    ").on_press(Message::Noop);
-        let mut scan_light = Button::new("    ").on_press(Message::Noop);
         let mut btn_start = Button::new("启动").on_press(Message::StartServer);
         let mut btn_stop = Button::new("停止").on_press(Message::StopServer);
+        let mut scan_light = Button::new("    ").on_press(Message::Noop);
+        let scan_text;
+        let label_width = 60;
+        let dir_label = Text::new("文件夹").width(label_width);
+        let dir_input: TextInput<Message> = TextInput::new("", &CONFIG.dir, |_s| -> Message {
+            return Message::Noop;
+        });
+        let port_label = Text::new("端口").width(label_width);
+        let port_input: TextInput<Message> =
+            TextInput::new("", CONFIG.port.to_string().as_str(), |_s| -> Message {
+                return Message::Noop;
+            });
 
         let d_guard = self.data.lock().unwrap();
 
@@ -113,32 +125,47 @@ impl Application for Gui {
         match d_guard.server_file_info.scan_status {
             ScanStatus::Wait => {
                 scan_light = scan_light.style(theme::Button::Secondary);
+                scan_text = Text::new("");
             }
             ScanStatus::Scanning => {
                 scan_light = scan_light.style(theme::Button::Primary);
+                scan_text = Text::new("刷新文件列表中");
             }
             ScanStatus::Failed => {
                 scan_light = scan_light.style(theme::Button::Destructive);
+                scan_text = Text::new("刷新文件列表表失败");
             }
             ScanStatus::Completed => {
                 scan_light = scan_light.style(theme::Button::Positive);
+                scan_text = Text::new("刷新文件列表成功");
             }
         }
         drop(d_guard);
 
-        let mut status_container = Row::new();
-        status_container = status_container.padding(10).spacing(10);
-        status_container = status_container.push(light);
-        status_container = status_container.push(btn_start);
-        status_container = status_container.push(btn_stop);
+        let status_container = Row::new()
+            .padding(10)
+            .spacing(10)
+            .push(light)
+            .push(btn_start)
+            .push(btn_stop);
 
-        let mut scan_status_container = Row::new();
-        scan_status_container = scan_status_container.padding(10).spacing(10);
-        scan_status_container = scan_status_container.push(scan_light);
+        let scan_status_container = Row::new()
+            .padding(10)
+            .spacing(10)
+            .push(scan_light)
+            .push(scan_text);
 
-        let mut mc = Column::new();
-        mc = mc.push(status_container);
-        mc = mc.push(scan_status_container);
+        let dir_container = Row::new().push(dir_label).push(dir_input);
+        let port_container = Row::new().push(port_label).push(port_input);
+        let config_container = Column::new()
+            .padding(10)
+            .push(dir_container)
+            .push(port_container);
+
+        let mc = Column::new()
+            .push(status_container)
+            .push(scan_status_container)
+            .push(config_container);
 
         let c = Container::new(mc);
 

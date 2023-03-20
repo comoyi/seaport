@@ -1,7 +1,8 @@
-use crate::data::{AppData, ServerFileInfo};
+use crate::config::CONFIG;
+use crate::data::AppData;
 use crate::scanner::Scanner;
 use crate::{api, gui};
-use log::{debug, info};
+use log::info;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -16,7 +17,7 @@ pub fn start() {
 
     thread::spawn(move || {
         let mut scanner = Scanner::new();
-        let base_path = "/tmp/a";
+        let base_path = &CONFIG.dir;
         scanner.set_base_path(base_path);
         scanner.start(d1);
     });

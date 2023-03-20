@@ -1,4 +1,5 @@
 use crate::data::{AppData, FileInfo, FileType, ScanStatus, ServerStatus};
+use crate::error::Error;
 use crate::util;
 use log::{debug, info, warn};
 use std::sync::{Arc, Mutex};
@@ -28,7 +29,13 @@ impl Scanner {
             match d_guard.server_status {
                 ServerStatus::Started => {
                     drop(d_guard);
-                    self.scan(&self.base_path, data.clone());
+                    let scan_res = self.scan(&self.base_path, data.clone());
+                    if let Err(e) = scan_res {
+                        debug!("scan failed: {:?}", e);
+                        let mut d_guard = data.lock().unwrap();
+                        d_guard.server_file_info.scan_status = ScanStatus::Failed;
+                        drop(d_guard);
+                    }
                 }
                 _ => {
                     d_guard.server_file_info.scan_status = ScanStatus::Wait;
@@ -40,7 +47,7 @@ impl Scanner {
         }
     }
 
-    fn scan(&self, base_path: &str, data: Arc<Mutex<AppData>>) {
+    fn scan(&self, base_path: &str, data: Arc<Mutex<AppData>>) -> Result<(), Error> {
         let mut files: Vec<FileInfo> = vec![];
         let mut d_guard = data.lock().unwrap();
         d_guard.server_file_info.scan_status = ScanStatus::Scanning;
@@ -49,39 +56,45 @@ impl Scanner {
         debug!("{}", "scan start");
 
         let d = walkdir::WalkDir::new(base_path);
-        d.into_iter().for_each(|entry_res| match entry_res {
-            Ok(entry) => {
-                let absolute_path = entry.path().to_str().unwrap();
-                if absolute_path == base_path {
-                    debug!("ignore base_path")
-                } else {
-                    let relative_path = absolute_path
-                        .trim_start_matches(base_path)
-                        .trim_start_matches("/");
-                    let file_type;
-                    let mut hash_sum = "".to_string();
-                    if entry.path().is_symlink() {
-                        file_type = FileType::Symlink;
-                    } else if entry.path().is_dir() {
-                        file_type = FileType::Dir;
-                    } else if entry.path().is_file() {
-                        file_type = FileType::File;
-                        hash_sum = util::md5_file(absolute_path);
-                    } else {
-                        warn!("unexpected file type, relative_path: {}", relative_path);
-                        return;
-                    }
 
-                    debug!("abs_path: {}, rel_path: {}", absolute_path, relative_path);
-                    let mut file = FileInfo::new();
-                    file.relative_path = relative_path.to_string();
-                    file.file_type = file_type;
-                    file.hash = hash_sum;
-                    files.push(file);
+        let iter = d.into_iter();
+        for entry_res in iter {
+            match entry_res {
+                Ok(entry) => {
+                    let absolute_path = entry.path().to_str().unwrap();
+                    if absolute_path == base_path {
+                        debug!("ignore base_path")
+                    } else {
+                        let relative_path = absolute_path
+                            .trim_start_matches(base_path)
+                            .trim_start_matches("/");
+                        let file_type;
+                        let mut hash_sum = "".to_string();
+                        if entry.path().is_symlink() {
+                            file_type = FileType::Symlink;
+                        } else if entry.path().is_dir() {
+                            file_type = FileType::Dir;
+                        } else if entry.path().is_file() {
+                            file_type = FileType::File;
+                            hash_sum = util::md5_file(absolute_path);
+                        } else {
+                            warn!("ignored file type, relative_path: {}", relative_path);
+                            continue;
+                        }
+
+                        debug!("abs_path: {}, rel_path: {}", absolute_path, relative_path);
+                        let mut file = FileInfo::new();
+                        file.relative_path = relative_path.to_string();
+                        file.file_type = file_type;
+                        file.hash = hash_sum;
+                        files.push(file);
+                    }
+                }
+                Err(_) => {
+                    return Err(Error::ScanError);
                 }
             }
-            Err(_) => {}
-        });
+        }
 
         let mut d_guard = data.lock().unwrap();
         d_guard.server_file_info.files = files;
@@ -104,5 +117,7 @@ impl Scanner {
 
         debug!("json: {}", j);
         debug!("{}", "scan completed");
+
+        Ok(())
     }
 }

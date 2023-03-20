@@ -1,3 +1,4 @@
+use crate::config::CONFIG;
 use crate::data::AppData;
 use axum::extract::{Query, State};
 use axum::http::header::CONTENT_TYPE;
@@ -19,7 +20,7 @@ pub async fn start(data: Arc<Mutex<AppData>>) {
         .route("/sync", get(sync))
         .route("/announcement", get(announcement))
         .with_state(data);
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    let addr = SocketAddr::from(([127, 0, 0, 1], CONFIG.port));
     Server::bind(&addr)
         .serve(a.into_make_service())
         .await
@@ -49,7 +50,7 @@ struct SyncQuery {
 async fn sync(Query(q): Query<SyncQuery>) -> impl IntoResponse {
     let rp = q.file;
 
-    let base_path = "/tmp/a";
+    let base_path = &CONFIG.dir;
     let absolute_path = path::Path::new(base_path).join(rp);
     if absolute_path.exists() {
         if absolute_path.starts_with(base_path) {

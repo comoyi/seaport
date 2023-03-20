@@ -2320,6 +2320,7 @@ dependencies = [
  "config",
  "env_logger",
  "iced",
+ "lazy_static",
  "log",
  "md5",
  "notify",
