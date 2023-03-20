@@ -8,7 +8,7 @@ pub fn init_log() {
     // println!("log filter: {}", l);
 
     let mut builder = Builder::from_default_env();
-    builder.filter_level(LevelFilter::Warn);
+    // builder.filter_level(LevelFilter::Warn);
     builder.filter_module("seaport", l);
     builder.init();
 }

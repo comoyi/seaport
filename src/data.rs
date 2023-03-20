@@ -96,12 +96,6 @@ pub struct Announcement {
     hash: String,
 }
 
-impl Announcement {
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
 impl Default for Announcement {
     fn default() -> Self {
         Announcement {
