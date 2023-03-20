@@ -45,6 +45,7 @@ pub enum ScanStatus {
 pub struct ServerFileInfo {
     #[serde(rename = "status")]
     pub scan_status: ScanStatus,
+    pub last_scan_finish_time: i64,
     pub files: Vec<FileInfo>,
 }
 
@@ -58,6 +59,7 @@ impl Default for ServerFileInfo {
     fn default() -> Self {
         ServerFileInfo {
             scan_status: ScanStatus::Wait,
+            last_scan_finish_time: 0,
             files: vec![],
         }
     }

@@ -3,8 +3,8 @@ use crate::error::Error;
 use crate::util;
 use log::{debug, info, warn};
 use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
+use std::time::{Duration, UNIX_EPOCH};
+use std::{thread, time};
 
 pub struct Scanner {
     base_path: String,
@@ -99,6 +99,10 @@ impl Scanner {
         let mut d_guard = data.lock().unwrap();
         d_guard.server_file_info.files = files;
         d_guard.server_file_info.scan_status = ScanStatus::Completed;
+        d_guard.server_file_info.last_scan_finish_time = time::SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
         drop(d_guard);
 
         let mut j = String::from("");

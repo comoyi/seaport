@@ -1,6 +1,6 @@
 use crate::config::CONFIG;
 use crate::data::{AppData, ScanStatus, ServerStatus};
-use crate::version;
+use crate::{util, version};
 use iced::widget::{Button, Column, Container, Row, Text, TextInput};
 use iced::{theme, window, Application, Command, Element, Renderer, Settings};
 use log::info;
@@ -13,7 +13,7 @@ pub fn start(data: Arc<Mutex<AppData>>) {
 
     let _ = Gui::run(Settings {
         window: window::Settings {
-            size: (300, 200),
+            size: (320, 220),
             resizable: true,
             decorations: true,
             ..window::Settings::default()
@@ -106,6 +106,9 @@ impl Application for Gui {
             .width(70);
 
         let d_guard = self.data.lock().unwrap();
+        let last_scan_finish_time_text = Text::new(format_last_scan_finish_time(
+            d_guard.server_file_info.last_scan_finish_time,
+        ));
 
         match d_guard.server_status {
             ServerStatus::Starting => {
@@ -150,30 +153,37 @@ impl Application for Gui {
         }
         drop(d_guard);
 
+        let default_padding = 10;
+        let default_spacing = 10;
         let status_container = Row::new()
-            .padding(10)
-            .spacing(10)
+            .padding(default_padding)
+            .spacing(default_spacing)
             .push(light)
             .push(btn_start)
             .push(btn_stop);
 
         let scan_status_container = Row::new()
-            .padding(10)
-            .spacing(10)
+            .padding(default_padding)
+            .spacing(default_spacing)
             .push(scan_light)
             .push(scan_text);
 
         let dir_container = Row::new().push(dir_label).push(dir_input);
         let port_container = Row::new().push(port_label).push(port_input);
         let config_container = Column::new()
-            .padding(10)
-            .spacing(10)
+            .padding(default_padding)
+            .spacing(default_spacing)
             .push(dir_container)
             .push(port_container);
+
+        let st_container = Column::new()
+            .padding(default_padding)
+            .push(last_scan_finish_time_text);
 
         let mc = Column::new()
             .push(status_container)
             .push(scan_status_container)
+            .push(st_container)
             .push(config_container);
 
         let c = Container::new(mc);
@@ -184,7 +194,7 @@ impl Application for Gui {
 }
 
 fn calc_dir_input_width() -> u16 {
-    let min = 200;
+    let min = 250;
     let max = 500;
     let mut width = (&CONFIG).dir.len() as u16 * 10;
     if width < min {
@@ -193,4 +203,12 @@ fn calc_dir_input_width() -> u16 {
         width = max;
     }
     width
+}
+
+fn format_last_scan_finish_time(timestamp: i64) -> String {
+    if timestamp == 0 {
+        return "等待刷新".to_string();
+    }
+    let dt = util::format_timestamp_to_datetime(timestamp);
+    format!("上次刷新时间：{}", dt)
 }
