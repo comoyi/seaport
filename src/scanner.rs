@@ -1,10 +1,18 @@
 use crate::data::{AppData, FileInfo, FileType, ScanStatus, ServerStatus};
 use crate::error::Error;
 use crate::util;
+use chrono::Local;
+use futures::{
+    channel::mpsc::{channel, Receiver},
+    SinkExt, StreamExt,
+};
 use log::{debug, info, warn};
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, UNIX_EPOCH};
-use std::{thread, time};
+use notify::{Config, Event, RecommendedWatcher, RecursiveMode, Watcher};
+use std::path::Path;
+use std::sync::mpsc::Sender;
+use std::sync::{mpsc, Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 
 pub struct Scanner {
     base_path: String,
@@ -24,17 +32,46 @@ impl Scanner {
     pub fn start(&self, data: Arc<Mutex<AppData>>) {
         info!("start scanner");
 
+        let (tx, rx) = std::sync::mpsc::channel::<Event>();
+        self.start_watcher(tx);
+        self.start_worker(data, rx);
+    }
+
+    fn start_worker(&self, data: Arc<Mutex<AppData>>, rx: mpsc::Receiver<Event>) {
+        let mut last_scan_time = 0;
+        let mut is_check = false;
         loop {
+            debug!("before scan check");
+            // skip for first time
+            if is_check {
+                // block until any change
+                let _ = rx.recv();
+
+                // change status
+                let mut d_guard = data.lock().unwrap();
+                d_guard.server_file_info.scan_status = ScanStatus::Wait;
+                drop(d_guard);
+
+                // waiting for change
+                while let Ok(event) = rx.recv_timeout(Duration::from_secs(3)) {}
+            }
+
             let mut d_guard = data.lock().unwrap();
             match d_guard.server_status {
                 ServerStatus::Started => {
                     drop(d_guard);
+                    is_check = true;
+                    if Local::now().timestamp() - last_scan_time <= 1 {
+                        thread::sleep(Duration::from_secs(1));
+                    }
                     let scan_res = self.scan(&self.base_path, data.clone());
                     if let Err(e) = scan_res {
                         debug!("scan failed: {:?}", e);
                         let mut d_guard = data.lock().unwrap();
                         d_guard.server_file_info.scan_status = ScanStatus::Failed;
                         drop(d_guard);
+                    } else {
+                        last_scan_time = Local::now().timestamp();
                     }
                 }
                 _ => {
@@ -42,8 +79,7 @@ impl Scanner {
                     drop(d_guard);
                 }
             }
-
-            thread::sleep(Duration::from_secs(3));
+            thread::sleep(Duration::from_secs(1));
         }
     }
 
@@ -99,10 +135,7 @@ impl Scanner {
         let mut d_guard = data.lock().unwrap();
         d_guard.server_file_info.files = files;
         d_guard.server_file_info.scan_status = ScanStatus::Completed;
-        d_guard.server_file_info.last_scan_finish_time = time::SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
+        d_guard.server_file_info.last_scan_finish_time = Local::now().timestamp();
         drop(d_guard);
 
         let mut j = String::from("");
@@ -124,4 +157,50 @@ impl Scanner {
 
         Ok(())
     }
+
+    fn start_watcher(&self, tx: Sender<Event>) {
+        let path = self.base_path.to_string();
+        thread::spawn(|| {
+            futures::executor::block_on(async {
+                if let Err(e) = async_watch(path, tx).await {
+                    warn!("error: {:?}", e)
+                }
+            });
+        });
+    }
+}
+
+fn async_watcher() -> notify::Result<(RecommendedWatcher, Receiver<notify::Result<Event>>)> {
+    let (mut tx, rx) = channel(1);
+
+    let watcher = RecommendedWatcher::new(
+        move |res| {
+            futures::executor::block_on(async {
+                tx.send(res).await.unwrap();
+            })
+        },
+        Config::default(),
+    )?;
+
+    Ok((watcher, rx))
+}
+
+async fn async_watch<P: AsRef<Path>>(path: P, tx: Sender<Event>) -> notify::Result<()> {
+    let (mut watcher, mut rx) = async_watcher()?;
+
+    watcher.watch(path.as_ref(), RecursiveMode::Recursive)?;
+
+    while let Some(res) = rx.next().await {
+        match res {
+            Ok(event) => {
+                // debug!("changed: {:?}", event);
+                tx.send(event).unwrap();
+            }
+            Err(e) => {
+                warn!("watch error: {:?}", e)
+            }
+        }
+    }
+
+    Ok(())
 }
