@@ -5,7 +5,10 @@ use iced::widget::{Button, Column, Container, Row, Text, TextInput};
 use iced::{
     subscription, theme, window, Application, Command, Element, Renderer, Settings, Subscription,
 };
+use iced_aw::menu;
+use iced_aw::menu::{MenuBar, MenuTree};
 use log::{debug, info};
+use std::process::exit;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -15,7 +18,7 @@ pub fn start(data: Arc<Mutex<AppData>>) {
 
     let _ = Gui::run(Settings {
         window: window::Settings {
-            size: (320, 220),
+            size: (320, 280),
             resizable: true,
             decorations: true,
             ..window::Settings::default()
@@ -34,6 +37,7 @@ struct Gui {
 enum Message {
     StartServer,
     StopServer,
+    Exit,
     Noop,
 }
 
@@ -83,12 +87,37 @@ impl Application for Gui {
                 thread::sleep(Duration::from_millis(100));
                 d_guard.server_status = ServerStatus::Stopped;
             }
+            Message::Exit => {
+                exit(0);
+            }
             Message::Noop => {}
         }
         Command::none()
     }
 
     fn view(&self) -> Element<'_, Self::Message, Renderer<Self::Theme>> {
+        let m_btn_help = Button::new("帮助")
+            .style(theme::Button::Secondary)
+            .on_press(Message::Noop);
+        let m_btn_about = Button::new("关于")
+            .style(theme::Button::Secondary)
+            .on_press(Message::Noop);
+        let mt_help = MenuTree::new(m_btn_about);
+        let mr_help = MenuTree::with_children(m_btn_help, vec![mt_help]);
+
+        let m_btn_exit = Button::new("退出")
+            .style(theme::Button::Secondary)
+            .on_press(Message::Exit);
+        let mt_exit = MenuTree::new(m_btn_exit);
+        let m_btn_opt = Button::new("操作")
+            .style(theme::Button::Secondary)
+            .on_press(Message::Noop);
+        let mr_opt = MenuTree::with_children(m_btn_opt, vec![mt_exit]);
+        let mb = MenuBar::new(vec![mr_opt, mr_help])
+            .padding(10)
+            .spacing(10.0)
+            .item_width(menu::ItemWidth::Static(50));
+
         let mut light = Button::new("    ").on_press(Message::Noop);
         let mut btn_start = Button::new("启动").on_press(Message::StartServer);
         let mut btn_stop = Button::new("停止").on_press(Message::StopServer);
@@ -183,6 +212,7 @@ impl Application for Gui {
             .push(last_scan_finish_time_text);
 
         let mc = Column::new()
+            .push(mb)
             .push(status_container)
             .push(scan_status_container)
             .push(st_container)

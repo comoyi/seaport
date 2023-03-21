@@ -1279,6 +1279,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "iced_aw"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3d625cc54f66be9e619f7c28f3ef56bf5eb74ec936f442ea8a1ee56288f935c"
+dependencies = [
+ "iced_graphics",
+ "iced_native",
+ "iced_style",
+]
+
+[[package]]
 name = "iced_core"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2430,6 +2441,7 @@ dependencies = [
  "env_logger",
  "futures",
  "iced",
+ "iced_aw",
  "lazy_static",
  "log",
  "md5",
