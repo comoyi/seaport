@@ -40,30 +40,36 @@ impl Scanner {
     fn start_worker(&self, data: Arc<Mutex<AppData>>, rx: mpsc::Receiver<Event>) {
         let mut last_scan_time = 0;
         let mut is_check = false;
-        loop {
-            debug!("before scan check");
-            // skip for first time
-            if is_check {
-                // block until any change
-                let _ = rx.recv();
-
-                // change status
-                let mut d_guard = data.lock().unwrap();
-                d_guard.server_file_info.scan_status = ScanStatus::Wait;
-                drop(d_guard);
-
-                // waiting for change
-                while let Ok(event) = rx.recv_timeout(Duration::from_secs(3)) {}
-            }
-
+        'outer: loop {
             let mut d_guard = data.lock().unwrap();
             match d_guard.server_status {
                 ServerStatus::Started => {
                     drop(d_guard);
-                    is_check = true;
-                    if Local::now().timestamp() - last_scan_time <= 1 {
-                        thread::sleep(Duration::from_secs(1));
+                    // skip for first time
+                    if is_check {
+                        // block until any change
+                        while let Err(_) = rx.recv_timeout(Duration::from_secs(1)) {
+                            let mut d_guard = data.lock().unwrap();
+                            match d_guard.server_status {
+                                ServerStatus::Stopping | ServerStatus::Stopped => {
+                                    drop(d_guard);
+                                    continue 'outer;
+                                }
+                                _ => {
+                                    drop(d_guard);
+                                }
+                            }
+                        }
+
+                        // change status
+                        let mut d_guard = data.lock().unwrap();
+                        d_guard.server_file_info.scan_status = ScanStatus::Wait;
+                        drop(d_guard);
+
+                        // waiting for continuous change
+                        while let Ok(_) = rx.recv_timeout(Duration::from_secs(3)) {}
                     }
+                    is_check = true;
                     let scan_res = self.scan(&self.base_path, data.clone());
                     if let Err(e) = scan_res {
                         debug!("scan failed: {:?}", e);
@@ -77,6 +83,8 @@ impl Scanner {
                 _ => {
                     d_guard.server_file_info.scan_status = ScanStatus::Wait;
                     drop(d_guard);
+
+                    is_check = false;
                 }
             }
             thread::sleep(Duration::from_secs(1));
