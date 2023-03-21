@@ -6,6 +6,8 @@ use log::info;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+pub const APP_NAME: &str = "Valheim Server Toolkit";
+
 pub fn start() {
     info!("start app");
 

@@ -1,12 +1,12 @@
 use crate::config::CONFIG;
 use crate::data::{AppData, ScanStatus, ServerStatus};
-use crate::{util, version};
+use crate::{app, util, version};
 use iced::widget::{Button, Column, Container, Row, Text, TextInput};
 use iced::{
     subscription, theme, window, Application, Command, Element, Renderer, Settings, Subscription,
 };
-use iced_aw::menu;
 use iced_aw::menu::{MenuBar, MenuTree};
+use iced_aw::{menu, Card, Modal};
 use log::{debug, info};
 use std::process::exit;
 use std::sync::{Arc, Mutex};
@@ -18,7 +18,7 @@ pub fn start(data: Arc<Mutex<AppData>>) {
 
     let _ = Gui::run(Settings {
         window: window::Settings {
-            size: (320, 280),
+            size: (380, 280),
             resizable: true,
             decorations: true,
             ..window::Settings::default()
@@ -31,6 +31,7 @@ pub fn start(data: Arc<Mutex<AppData>>) {
 
 struct Gui {
     data: Arc<Mutex<AppData>>,
+    is_show_modal: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -38,6 +39,8 @@ enum Message {
     StartServer,
     StopServer,
     Exit,
+    OpenModal,
+    CloseModal,
     Noop,
 }
 
@@ -48,11 +51,17 @@ impl Application for Gui {
     type Flags = Arc<Mutex<AppData>>;
 
     fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        (Self { data: flags }, Command::none())
+        (
+            Self {
+                data: flags,
+                is_show_modal: false,
+            },
+            Command::none(),
+        )
     }
 
     fn title(&self) -> String {
-        let mut t = format!("App - v{}", version::VERSION_TEXT);
+        let mut t = format!("{} - v{}", app::APP_NAME, version::VERSION_TEXT);
         let ct = &CONFIG.title;
         if ct.len() > 0 {
             t = format!("{}  {}", t, ct);
@@ -90,6 +99,12 @@ impl Application for Gui {
             Message::Exit => {
                 exit(0);
             }
+            Message::CloseModal => {
+                self.is_show_modal = false;
+            }
+            Message::OpenModal => {
+                self.is_show_modal = true;
+            }
             Message::Noop => {}
         }
         Command::none()
@@ -101,7 +116,7 @@ impl Application for Gui {
             .on_press(Message::Noop);
         let m_btn_about = Button::new("关于")
             .style(theme::Button::Secondary)
-            .on_press(Message::Noop);
+            .on_press(Message::OpenModal);
         let mt_help = MenuTree::new(m_btn_about);
         let mr_help = MenuTree::with_children(m_btn_help, vec![mt_help]);
 
@@ -117,6 +132,21 @@ impl Application for Gui {
             .padding(10)
             .spacing(10.0)
             .item_width(menu::ItemWidth::Static(50));
+
+        let modal_about = Modal::new(self.is_show_modal, "", || {
+            Card::new(
+                Text::new("关于"),
+                Text::new(format!(
+                    "{}\n\nVersion {}\n\nCopyright © 2023 清新池塘",
+                    app::APP_NAME,
+                    version::VERSION_TEXT
+                )),
+            )
+            .max_width(300.0)
+            .into()
+        })
+        .backdrop(Message::CloseModal)
+        .on_esc(Message::CloseModal);
 
         let mut light = Button::new("    ").on_press(Message::Noop);
         let mut btn_start = Button::new("启动").on_press(Message::StartServer);
@@ -212,6 +242,7 @@ impl Application for Gui {
             .push(last_scan_finish_time_text);
 
         let mc = Column::new()
+            .push(modal_about)
             .push(mb)
             .push(status_container)
             .push(scan_status_container)
