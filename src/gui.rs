@@ -2,8 +2,10 @@ use crate::config::CONFIG;
 use crate::data::{AppData, ScanStatus, ServerStatus};
 use crate::{util, version};
 use iced::widget::{Button, Column, Container, Row, Text, TextInput};
-use iced::{theme, window, Application, Command, Element, Renderer, Settings};
-use log::info;
+use iced::{
+    subscription, theme, window, Application, Command, Element, Renderer, Settings, Subscription,
+};
+use log::{debug, info};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -191,6 +193,12 @@ impl Application for Gui {
         let content = c.into();
         return content;
     }
+
+    fn subscription(&self) -> Subscription<Self::Message> {
+        debug!("s0");
+        let es = vec![SubscribeEvent::RefreshUi, SubscribeEvent::RefreshUi];
+        Subscription::batch(es.iter().map(SubscribeEvent::s))
+    }
 }
 
 fn calc_dir_input_width() -> u16 {
@@ -211,4 +219,23 @@ fn format_last_scan_finish_time(timestamp: i64) -> String {
     }
     let dt = util::format_timestamp_to_datetime(timestamp);
     format!("上次刷新时间：{}", dt)
+}
+
+enum SubscribeEvent {
+    RefreshUi,
+}
+
+impl SubscribeEvent {
+    fn s(&self) -> Subscription<Message> {
+        debug!("s1");
+        subscription::unfold("1", "InitData".to_string(), |d| {
+            debug!("s2,{:?}", d);
+
+            async {
+                thread::sleep(Duration::from_secs(1));
+                (Some(Message::Noop), "NewData".to_string())
+            }
+        })
+        .map(|_| Message::Noop)
+    }
 }

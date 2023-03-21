@@ -38,7 +38,6 @@ impl Scanner {
     }
 
     fn start_worker(&self, data: Arc<Mutex<AppData>>, rx: mpsc::Receiver<Event>) {
-        let mut last_scan_time = 0;
         let mut is_check = false;
         'outer: loop {
             let mut d_guard = data.lock().unwrap();
@@ -49,7 +48,7 @@ impl Scanner {
                     if is_check {
                         // block until any change
                         while let Err(_) = rx.recv_timeout(Duration::from_secs(1)) {
-                            let mut d_guard = data.lock().unwrap();
+                            let d_guard = data.lock().unwrap();
                             match d_guard.server_status {
                                 ServerStatus::Stopping | ServerStatus::Stopped => {
                                     drop(d_guard);
@@ -76,8 +75,6 @@ impl Scanner {
                         let mut d_guard = data.lock().unwrap();
                         d_guard.server_file_info.scan_status = ScanStatus::Failed;
                         drop(d_guard);
-                    } else {
-                        last_scan_time = Local::now().timestamp();
                     }
                 }
                 _ => {
