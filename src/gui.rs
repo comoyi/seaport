@@ -24,6 +24,7 @@ pub fn start(data: Arc<Mutex<AppData>>) {
     let _ = Gui::run(Settings {
         window: window::Settings {
             size: (680, 280),
+            position: window::Position::Centered,
             resizable: true,
             decorations: true,
             icon: icon,
