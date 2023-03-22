@@ -1,0 +1,12 @@
+log_level = 'OFF'
+
+port = 8080
+
+dir = '/tmp'
+
+title = ''
+
+announcement = '''
+公告
+欢迎
+'''
