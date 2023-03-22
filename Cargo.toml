@@ -1,6 +1,6 @@
 [package]
 name = "seaport"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Michael Chi <chicong@outlook.com>"]
 edition = "2021"
 description = "A sync server"
