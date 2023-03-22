@@ -19,7 +19,7 @@ impl Default for AppData {
         AppData {
             server_status: ServerStatus::Stopped,
             server_file_info: ServerFileInfo::new(),
-            announcement: Announcement::default(),
+            announcement: Default::default(),
         }
     }
 }

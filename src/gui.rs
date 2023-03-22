@@ -18,7 +18,7 @@ pub fn start(data: Arc<Mutex<AppData>>) {
 
     let _ = Gui::run(Settings {
         window: window::Settings {
-            size: (380, 280),
+            size: (680, 280),
             resizable: true,
             decorations: true,
             ..window::Settings::default()
@@ -241,13 +241,17 @@ impl Application for Gui {
             .padding(default_padding)
             .push(last_scan_finish_time_text);
 
-        let mc = Column::new()
+        let ann_card = Card::new("公告", CONFIG.announcement.as_str()).max_width(350.0);
+
+        let opt_c = Column::new()
             .push(modal_about)
             .push(mb)
             .push(status_container)
             .push(scan_status_container)
             .push(st_container)
             .push(config_container);
+        let ann_c = Column::new().padding(default_padding).push(ann_card);
+        let mc = Row::new().push(opt_c).push(ann_c);
 
         let c = Container::new(mc);
 

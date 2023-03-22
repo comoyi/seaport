@@ -14,6 +14,7 @@ pub struct Config {
     pub port: u16,
     pub dir: String,
     pub title: String,
+    pub announcement: String,
 }
 
 pub fn init_config() -> Config {
@@ -57,5 +58,7 @@ fn set_default(b: ConfigBuilder<DefaultState>) -> ConfigBuilder<DefaultState> {
         .set_default("dir", "")
         .unwrap()
         .set_default("title", "")
+        .unwrap()
+        .set_default("announcement", "")
         .unwrap()
 }

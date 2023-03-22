@@ -11,7 +11,8 @@ pub const APP_NAME: &str = "Valheim Server Toolkit";
 pub fn start() {
     info!("start app");
 
-    let app_data = AppData::new();
+    let mut app_data = AppData::new();
+    app_data.announcement.content = CONFIG.announcement.to_string();
     let d = Arc::new(Mutex::new(app_data));
     let d1 = Arc::clone(&d);
     let d2 = Arc::clone(&d);
