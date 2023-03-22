@@ -20,7 +20,7 @@ pub async fn start(data: Arc<Mutex<AppData>>) {
         .route("/sync", get(sync))
         .route("/announcement", get(announcement))
         .with_state(data);
-    let addr = SocketAddr::from(([127, 0, 0, 1], CONFIG.port));
+    let addr = SocketAddr::from(([0, 0, 0, 0], CONFIG.port));
     Server::bind(&addr)
         .serve(a.into_make_service())
         .await

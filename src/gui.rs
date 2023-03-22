@@ -7,7 +7,7 @@ use iced::{
 };
 use iced_aw::menu::{MenuBar, MenuTree};
 use iced_aw::{menu, Card, Modal};
-use log::{debug, info};
+use log::{info, trace};
 use std::process::exit;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -260,7 +260,7 @@ impl Application for Gui {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        debug!("s0");
+        trace!("s0");
         let es = vec![SubscribeEvent::RefreshUi, SubscribeEvent::RefreshUi];
         Subscription::batch(es.iter().map(SubscribeEvent::s))
     }
@@ -268,7 +268,7 @@ impl Application for Gui {
 
 fn calc_dir_input_width() -> u16 {
     let min = 250;
-    let max = 500;
+    let max = 380;
     let mut width = (&CONFIG).dir.len() as u16 * 10;
     if width < min {
         width = min;
@@ -292,9 +292,9 @@ enum SubscribeEvent {
 
 impl SubscribeEvent {
     fn s(&self) -> Subscription<Message> {
-        debug!("s1");
+        trace!("s1");
         subscription::unfold("1", "InitData".to_string(), |d| {
-            debug!("s2,{:?}", d);
+            trace!("s2,{:?}", d);
 
             async {
                 thread::sleep(Duration::from_secs(1));
