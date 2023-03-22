@@ -2,11 +2,13 @@ use crate::config::CONFIG;
 use crate::data::{AppData, ScanStatus, ServerStatus};
 use crate::{app, util, version};
 use iced::widget::{Button, Column, Container, Row, Text, TextInput};
+use iced::window::Icon;
 use iced::{
     subscription, theme, window, Application, Command, Element, Renderer, Settings, Subscription,
 };
 use iced_aw::menu::{MenuBar, MenuTree};
 use iced_aw::{menu, Card, Modal};
+use image::ImageFormat;
 use log::{info, trace};
 use std::process::exit;
 use std::sync::{Arc, Mutex};
@@ -16,11 +18,15 @@ use std::time::Duration;
 pub fn start(data: Arc<Mutex<AppData>>) {
     info!("start gui");
 
+    let icon = Some(
+        Icon::from_file_data(include_bytes!("../images/icon.png"), Some(ImageFormat::Png)).unwrap(),
+    );
     let _ = Gui::run(Settings {
         window: window::Settings {
             size: (680, 280),
             resizable: true,
             decorations: true,
+            icon: icon,
             ..window::Settings::default()
         },
         flags: data,

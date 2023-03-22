@@ -13,7 +13,7 @@ config = "0.13.3"
 log = "0.4.17"
 env_logger = "0.10.0"
 chrono = "0.4.24"
-iced = "0.8.0"
+iced = {version = "0.8.0", features = ["image_rs"] }
 iced_aw = { version = "0.4.1", default-features = false, features = ["menu", "modal", "card"] }
 serde = {version="1.0.156", features = ["derive"]}
 serde_json = "1.0.94"
@@ -25,3 +25,4 @@ notify = "5.1.0"
 tokio = { version = "1.26.0", features = ["full"] }
 axum = "0.6.11"
 lazy_static = "1.4.0"
+image = "0.24.5"
