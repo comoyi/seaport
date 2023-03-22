@@ -106,9 +106,17 @@ impl Scanner {
                     if absolute_path == base_path {
                         debug!("ignore base_path")
                     } else {
-                        let relative_path = absolute_path
-                            .trim_start_matches(base_path)
-                            .trim_start_matches("/");
+                        let relative_path = match Path::new(absolute_path).strip_prefix(base_path) {
+                            Ok(p) => match p.to_str() {
+                                None => {
+                                    return Err(Error::ScanError);
+                                }
+                                Some(ps) => ps,
+                            },
+                            Err(_) => {
+                                return Err(Error::ScanError);
+                            }
+                        };
                         let file_type;
                         let mut hash_sum = "".to_string();
                         if entry.path().is_symlink() {
