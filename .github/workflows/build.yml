@@ -1,0 +1,51 @@
+name: Build
+
+env:
+  X_APP_NAME: seaport
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'develop'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set env
+        run: |
+          echo "X_APP_VERSION=`cat VERSION`" >> $GITHUB_ENV
+
+      - name: Cache Font
+        id: cache-font
+        uses: actions/cache@v3
+        with:
+          path: HarmonyOS_Sans.zip
+          key: cache-font-HarmonyOS_Sans-806e68b8cad06848d60da7211519c7b70a81588cdc19cec0d7238057a0726d3e
+
+      - name: Download Font
+        if: steps.cache-font.outputs.cache-hit != 'true'
+        run: |
+          wget -O HarmonyOS_Sans.zip https://communityfile-drcn.op.hicloud.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20220527115222.36009086555928047609106823953760:50530526070936:2800:E1CA794341643D6B6FFE8F1EE2DBB96B786975D088FDA18348E89FEC28135686.zip?needInitFileName=true
+
+      - name: Install Font
+        run: |
+          sha256sum HarmonyOS_Sans.zip
+          unzip HarmonyOS_Sans.zip
+          mkdir -p /usr/local/share/fonts
+          sudo cp HarmonyOS\ Sans/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf /usr/local/share/fonts
+
+      - name: Build Linux
+        run: cargo build --release --target x86_64-unknown-linux-musl
+
+      - name: Upload Linux installer package
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.X_APP_NAME }}-${{ env.X_APP_VERSION }}-linux-musl
+          path: target/x86_64-unknown-linux-musl/release/${{ env.X_APP_NAME }}
+          retention-days: 2
+          if-no-files-found: error
