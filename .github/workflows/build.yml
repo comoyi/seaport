@@ -22,7 +22,7 @@ jobs:
 
       - name: Install Prerequisites
         run: |
-          sudo apt-get install fontconfig
+          sudo apt-get install fontconfig gcc
           cargo install cross --git https://github.com/cross-rs/cross
 
       - name: Cache Font
@@ -46,16 +46,16 @@ jobs:
           cp HarmonyOS\ Sans/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf fonts
           ls -lh fonts
 
-      - name: Build Linux x86_64-unknown-linux-gnu
-        run: cargo build --release --target x86_64-unknown-linux-gnu
-
-      - name: Upload Linux x86_64-unknown-linux-gnu
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.X_APP_NAME }}-${{ env.X_APP_VERSION }}-x86_64-unknown-linux-gnu
-          path: target/x86_64-unknown-linux-gnu/release/${{ env.X_APP_NAME }}
-          retention-days: 2
-          if-no-files-found: error
+#      - name: Build Linux x86_64-unknown-linux-gnu
+#        run: cargo build --release --target x86_64-unknown-linux-gnu
+#
+#      - name: Upload Linux x86_64-unknown-linux-gnu
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: ${{ env.X_APP_NAME }}-${{ env.X_APP_VERSION }}-x86_64-unknown-linux-gnu
+#          path: target/x86_64-unknown-linux-gnu/release/${{ env.X_APP_NAME }}
+#          retention-days: 2
+#          if-no-files-found: error
 
       - name: Build Linux x86_64-unknown-linux-musl
         run: cross build --release --target x86_64-unknown-linux-musl
