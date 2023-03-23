@@ -20,6 +20,9 @@ jobs:
         run: |
           echo "X_APP_VERSION=`cat VERSION`" >> $GITHUB_ENV
 
+      - name: Install Prerequisites
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
       - name: Cache Font
         id: cache-font
         uses: actions/cache@v3
@@ -38,14 +41,15 @@ jobs:
           unzip HarmonyOS_Sans.zip
           mkdir -p /usr/local/share/fonts
           sudo cp HarmonyOS\ Sans/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf /usr/local/share/fonts
+          cp HarmonyOS\ Sans/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf fonts
 
       - name: Build Linux
-        run: cargo build --release --target x86_64-unknown-linux-musl
+        run: cross build --release --target x86_64-unknown-linux-musl
 
       - name: Upload Linux installer package
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.X_APP_NAME }}-${{ env.X_APP_VERSION }}-linux-musl
+          name: ${{ env.X_APP_NAME }}-${{ env.X_APP_VERSION }}-x86_64-unknown-linux-musl
           path: target/x86_64-unknown-linux-musl/release/${{ env.X_APP_NAME }}
           retention-days: 2
           if-no-files-found: error
