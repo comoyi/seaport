@@ -1,5 +1,6 @@
 use axum::extract::Query;
 use axum::response::IntoResponse;
+use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct DownloadQuery {
