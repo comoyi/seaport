@@ -1,4 +1,5 @@
 mod announcement;
+mod download;
 mod files;
 mod index;
 mod routers;

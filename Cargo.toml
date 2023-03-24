@@ -23,6 +23,7 @@ md5 = "0.7.0"
 walkdir = "2.3.3"
 notify = "5.1.0"
 tokio = { version = "1.26.0", features = ["full"] }
+tokio-util = { version = "0.7.7", features = ["io"] }
 axum = "0.6.11"
 lazy_static = "1.4.0"
 image = "0.24.5"
