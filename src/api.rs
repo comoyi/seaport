@@ -3,7 +3,6 @@ mod download;
 mod files;
 mod index;
 mod routers;
-mod sync;
 
 use crate::api::routers::create_router;
 use crate::config::CONFIG;
