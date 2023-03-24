@@ -79,6 +79,7 @@ pub struct FileInfo {
     pub relative_path: String,
     #[serde(rename = "type")]
     pub file_type: FileType,
+    pub size: u64,
     pub hash: String,
 }
 
@@ -87,6 +88,7 @@ impl FileInfo {
         FileInfo {
             relative_path: "".to_string(),
             file_type: FileType::Unknown,
+            size: 0,
             hash: "".to_string(),
         }
     }

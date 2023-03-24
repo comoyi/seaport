@@ -118,13 +118,16 @@ impl Scanner {
                             }
                         };
                         let file_type;
+                        let mut size = 0;
                         let mut hash_sum = "".to_string();
                         if entry.path().is_symlink() {
                             file_type = FileType::Symlink;
+                            size = entry.metadata().unwrap().len();
                         } else if entry.path().is_dir() {
                             file_type = FileType::Dir;
                         } else if entry.path().is_file() {
                             file_type = FileType::File;
+                            size = entry.metadata().unwrap().len();
                             hash_sum = util::md5_file(absolute_path);
                         } else {
                             warn!("ignored file type, relative_path: {}", relative_path);
@@ -135,6 +138,7 @@ impl Scanner {
                         let mut file = FileInfo::new();
                         file.relative_path = relative_path.to_string();
                         file.file_type = file_type;
+                        file.size = size;
                         file.hash = hash_sum;
                         files.push(file);
                     }
