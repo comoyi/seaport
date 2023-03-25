@@ -128,7 +128,19 @@ impl Scanner {
                         } else if entry.path().is_file() {
                             file_type = FileType::File;
                             size = entry.metadata().unwrap().len();
-                            hash_sum = util::md5_file(absolute_path);
+                            let hash_sum_r = util::md5_file(absolute_path);
+                            match hash_sum_r {
+                                Ok(h) => {
+                                    hash_sum = h;
+                                }
+                                Err(e) => {
+                                    warn!(
+                                        "calc hash failed, err: {}, rel_path: {}",
+                                        e, relative_path
+                                    );
+                                    return Err(Error::CalcHashError);
+                                }
+                            }
                         } else {
                             warn!("ignored file type, relative_path: {}", relative_path);
                             continue;

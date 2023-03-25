@@ -1,10 +1,17 @@
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
-use std::fs;
+use std::{fs, io};
 
-pub fn md5_file(path: &str) -> String {
-    let f = fs::read(path).unwrap();
+pub fn md5_file(path: &str) -> Result<String, io::Error> {
+    let f_r = fs::read(path);
+    let f;
+    match f_r {
+        Ok(file) => f = file,
+        Err(e) => {
+            return Err(e);
+        }
+    }
     let s = md5::compute(f);
-    format!("{:x}", s)
+    Ok(format!("{:x}", s))
 }
 
 pub fn format_timestamp_to_datetime(timestamp: i64) -> String {
