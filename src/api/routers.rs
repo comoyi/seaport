@@ -11,7 +11,7 @@ pub fn create_router(data: Arc<Mutex<AppData>>) -> Router {
     let r = Router::new()
         .route("/", get(index))
         .route("/files", get(files))
-        .route("/download", get(download))
+        .route("/api/experimental/download", get(download))
         .route("/sync", get(download))
         .route("/announcement", get(announcement))
         .with_state(data);
