@@ -7,7 +7,7 @@ on:
   push:
     branches:
       - 'main'
-#      - 'develop'
+      - 'develop'
 
 jobs:
   build:
@@ -22,7 +22,7 @@ jobs:
 
       - name: Install Prerequisites
         run: |
-          sudo apt-get install fontconfig libfontconfig-dev gcc
+          sudo apt-get install fontconfig libfontconfig-dev gcc cmake pkg-config libfreetype6-dev libfontconfig1-dev libxcb-xfixes0-dev libxkbcommon-dev
           cargo install cross --git https://github.com/cross-rs/cross
 
       - name: Cache Font
