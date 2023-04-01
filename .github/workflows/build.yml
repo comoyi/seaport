@@ -107,7 +107,9 @@ jobs:
           ls -lh fonts
 
       - name: Build Windows x86_64-pc-windows-gnu
-        run: cargo build --release --target x86_64-pc-windows-gnu
+        run: |
+#          cargo rustc --release --target x86_64-pc-windows-gnu -- -Clink-args="-Wl,--subsystem,windows"
+          cargo build --release --target x86_64-pc-windows-gnu
 
       - name: Upload Windows x86_64-pc-windows-gnu
         uses: actions/upload-artifact@v3
