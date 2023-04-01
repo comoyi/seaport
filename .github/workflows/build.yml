@@ -114,6 +114,8 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.X_APP_NAME }}-${{ env.X_APP_VERSION }}-x86_64-pc-windows-gnu
-          path: target/x86_64-pc-windows-gnu/release/${{ env.X_APP_NAME }}
+          path: |
+            config/config.toml
+            target/x86_64-pc-windows-gnu/release/${{ env.X_APP_NAME }}.exe
           retention-days: 2
           if-no-files-found: error
