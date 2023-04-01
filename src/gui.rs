@@ -70,7 +70,7 @@ impl Application for Gui {
     fn title(&self) -> String {
         let mut t = format!("{} - v{}", app::APP_NAME, version::VERSION_TEXT);
         let ct = &CONFIG.title;
-        if ct.len() > 0 {
+        if !ct.is_empty() {
             t = format!("{}  {}", t, ct);
         }
         t
@@ -80,11 +80,8 @@ impl Application for Gui {
         let mut d_guard = self.data.lock().unwrap();
         match message {
             Message::StartServer => {
-                match d_guard.server_status {
-                    ServerStatus::Started => {
-                        return Command::none();
-                    }
-                    _ => {}
+                if let ServerStatus::Started = d_guard.server_status {
+                    return Command::none();
                 }
                 info!("start server...");
                 d_guard.server_status = ServerStatus::Starting;
@@ -92,11 +89,8 @@ impl Application for Gui {
                 d_guard.server_status = ServerStatus::Started;
             }
             Message::StopServer => {
-                match d_guard.server_status {
-                    ServerStatus::Stopped => {
-                        return Command::none();
-                    }
-                    _ => {}
+                if let ServerStatus::Stopped = d_guard.server_status {
+                    return Command::none();
                 }
                 info!("stop server...");
                 d_guard.server_status = ServerStatus::Stopping;
@@ -162,14 +156,13 @@ impl Application for Gui {
         let scan_text;
         let label_width = 60;
         let dir_label = Text::new("文件夹").width(label_width);
-        let dir_input: TextInput<Message> = TextInput::new("", &CONFIG.dir, |_s| -> Message {
-            return Message::Noop;
-        })
-        .width(calc_dir_input_width());
+        let dir_input: TextInput<Message> =
+            TextInput::new("", &CONFIG.dir, |_s| -> Message { Message::Noop })
+                .width(calc_dir_input_width());
         let port_label = Text::new("端口").width(label_width);
         let port_input: TextInput<Message> =
             TextInput::new("", CONFIG.port.to_string().as_str(), |_s| -> Message {
-                return Message::Noop;
+                Message::Noop
             })
             .width(70);
 
@@ -262,8 +255,7 @@ impl Application for Gui {
 
         let c = Container::new(mc);
 
-        let content = c.into();
-        return content;
+        c.into()
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
@@ -276,7 +268,7 @@ impl Application for Gui {
 fn calc_dir_input_width() -> u16 {
     let min = 250;
     let max = 380;
-    let mut width = (&CONFIG).dir.len() as u16 * 10;
+    let mut width = CONFIG.dir.len() as u16 * 10;
     if width < min {
         width = min;
     } else if width > max {

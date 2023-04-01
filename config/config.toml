@@ -2,7 +2,7 @@ log_level = 'OFF'
 
 port = 8080
 
-dir = '/tmp'
+dir = '/tmp/test'
 
 title = ''
 
@@ -10,3 +10,17 @@ announcement = '''
 公告
 欢迎
 '''
+
+[[data_nodes]]
+name = 'Server-1'
+[data_nodes.address]
+protocol = 'http'
+host = '127.0.0.1'
+port = 8080
+
+[[data_nodes]]
+name = 'Server-2'
+[data_nodes.address]
+protocol = 'http'
+host = '127.0.0.1'
+port = 8082

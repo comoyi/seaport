@@ -2,6 +2,7 @@ mod announcement;
 mod download;
 mod files;
 mod index;
+mod info;
 mod routers;
 
 use crate::api::routers::create_router;

@@ -17,5 +17,8 @@ fn main() {
     // config::init_config();
 
     log::init_log();
+
+    CONFIG.print_config();
+
     app::start();
 }

@@ -47,7 +47,7 @@ impl Scanner {
                     // skip for first time
                     if is_check {
                         // block until any change
-                        while let Err(_) = rx.recv_timeout(Duration::from_secs(1)) {
+                        while rx.recv_timeout(Duration::from_secs(1)).is_err() {
                             let d_guard = data.lock().unwrap();
                             match d_guard.server_status {
                                 ServerStatus::Stopping | ServerStatus::Stopped => {
@@ -66,7 +66,7 @@ impl Scanner {
                         drop(d_guard);
 
                         // waiting for continuous change
-                        while let Ok(_) = rx.recv_timeout(Duration::from_secs(3)) {}
+                        while rx.recv_timeout(Duration::from_secs(3)).is_ok() {}
                     }
                     is_check = true;
                     let scan_res = self.scan(&self.base_path, data.clone());
