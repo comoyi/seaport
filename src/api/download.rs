@@ -1,7 +1,7 @@
 use crate::config::CONFIG;
 use axum::body::StreamBody;
 use axum::extract::{Path as QueryPath, Query};
-use axum::http::header::{CONTENT_DISPOSITION, CONTENT_RANGE};
+use axum::http::header::{CONTENT_DISPOSITION, CONTENT_LENGTH, CONTENT_RANGE};
 use axum::http::{header, HeaderMap, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use log::{debug, warn};
@@ -138,18 +138,24 @@ pub async fn do_download(rp: String, range: Option<String>) -> Response {
                 return (StatusCode::INTERNAL_SERVER_ERROR, "err: 1002").into_response();
             }
         };
-        let hv_content_range_r = HeaderValue::from_str(
-            format!("bytes {}-{}/{}", range_start, range_end, file_len).as_str(),
-        );
-        let hv_content_range = match hv_content_range_r {
-            Ok(v) => v,
-            Err(_) => {
-                return (StatusCode::INTERNAL_SERVER_ERROR, "err: 1003").into_response();
-            }
-        };
         let mut header = HeaderMap::new();
         header.insert(CONTENT_DISPOSITION, hv_filename);
-        header.insert(CONTENT_RANGE, hv_content_range);
+        header.insert(CONTENT_LENGTH, HeaderValue::from(range_len));
+        if range.is_some() {
+            let hv_content_range_r = HeaderValue::from_str(
+                format!("bytes {}-{}/{}", range_start, range_end, file_len).as_str(),
+            );
+            let hv_content_range = match hv_content_range_r {
+                Ok(v) => v,
+                Err(_) => {
+                    return (StatusCode::INTERNAL_SERVER_ERROR, "err: 1003").into_response();
+                }
+            };
+            header.insert(CONTENT_RANGE, hv_content_range);
+        }
+        if range.is_some() {
+            return (StatusCode::PARTIAL_CONTENT, header, body).into_response();
+        }
         return (header, body).into_response();
     } else {
         return (StatusCode::BAD_REQUEST, "unexpect type").into_response();
@@ -183,6 +189,9 @@ fn parse_range(range: &str, file_len: u64) -> Result<Range, RangeError> {
     }
     let range_sub = range_sub_o.unwrap();
     let s: Vec<_> = range_sub.split("-").collect();
+    if s.len() != 2 {
+        return Err(RangeError);
+    }
     let start;
     let end;
     if s[0] == "" {
@@ -194,6 +203,9 @@ fn parse_range(range: &str, file_len: u64) -> Result<Range, RangeError> {
         end = file_len - 1;
     } else {
         end = s[1].parse().unwrap();
+    }
+    if start > end {
+        return Err(RangeError);
     }
     Ok(Range::new(start, end))
 }
