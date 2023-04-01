@@ -36,6 +36,10 @@ pub async fn download_legacy(Query(q): Query<DownloadQuery>) -> Response {
 }
 
 pub async fn do_download(rp: String, range: Option<String>) -> Response {
+    if rp.contains("../") || rp.contains("..\\") || rp.ends_with(".") || rp.ends_with("..") {
+        return (StatusCode::NOT_FOUND, "err: 102").into_response();
+    }
+
     let base_path = &CONFIG.dir;
     let abs_path = Path::new(base_path).join(&rp);
     if !abs_path.starts_with(base_path) {
