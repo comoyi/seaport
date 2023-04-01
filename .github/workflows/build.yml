@@ -68,6 +68,9 @@ jobs:
 #          retention-days: 2
 #          if-no-files-found: error
 
+      - name: Install Prerequisites
+        run: |
+          rustup target add x86_64-pc-windows-gnu
       - name: Build Windows x86_64-pc-windows-gnu
         run: cargo build --release --target x86_64-pc-windows-gnu
 
