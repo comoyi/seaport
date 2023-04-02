@@ -1,6 +1,6 @@
 # Valheim Server Toolkit
 
-![app image](./images/app.png)
+![app image](./assets/images/app.png)
 
 This is server
 
