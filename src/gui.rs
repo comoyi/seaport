@@ -19,7 +19,11 @@ pub fn start(data: Arc<Mutex<AppData>>) {
     info!("start gui");
 
     let icon = Some(
-        Icon::from_file_data(include_bytes!("../assets/images/icon.png"), Some(ImageFormat::Png)).unwrap(),
+        Icon::from_file_data(
+            include_bytes!("../assets/images/icon.png"),
+            Some(ImageFormat::Png),
+        )
+        .unwrap(),
     );
     let _ = Gui::run(Settings {
         window: window::Settings {
@@ -31,7 +35,9 @@ pub fn start(data: Arc<Mutex<AppData>>) {
             ..window::Settings::default()
         },
         flags: data,
-        default_font: Some(include_bytes!("../assets/fonts/HarmonyOS_Sans_SC_Regular.ttf")),
+        default_font: Some(include_bytes!(
+            "../assets/fonts/HarmonyOS_Sans_SC_Regular.ttf"
+        )),
         ..Settings::default()
     });
 }
