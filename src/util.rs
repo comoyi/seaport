@@ -1,3 +1,5 @@
+pub mod path;
+
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use std::path::Path;
 use std::{fs, io};

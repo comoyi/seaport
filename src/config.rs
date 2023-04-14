@@ -4,6 +4,7 @@ use lazy_static::lazy_static;
 use log::debug;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
+use crate::util;
 
 lazy_static! {
     pub static ref CONFIG: Config = init_config();
@@ -62,12 +63,17 @@ pub fn init_config() -> Config {
 
     b = set_default(b);
 
-    let cps = vec![
-        "config.toml",
-        // "config/config.toml"
-    ];
+    let exe_dir_r = util::path::get_exe_dir();
+    let exe_dir = match exe_dir_r {
+        Ok(exe_dir) => exe_dir,
+        Err(e) => {
+            panic!("get exe_dir failed, err: {}", e);
+        }
+    };
+    let config_path = Path::new(&exe_dir).join("config.toml");
+    let cps = vec![config_path];
     for cp_str in cps {
-        let cp = Path::new(cp_str);
+        let cp = Path::new(&cp_str);
         if cp.exists() {
             // println!("Add config file: {:?}", cp);
             b = b.add_source(config::File::from(cp))
