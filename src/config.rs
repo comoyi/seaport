@@ -1,10 +1,10 @@
+use crate::util;
 use config::builder::DefaultState;
 use config::ConfigBuilder;
 use lazy_static::lazy_static;
 use log::debug;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use crate::util;
 
 lazy_static! {
     pub static ref CONFIG: Config = init_config();

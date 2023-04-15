@@ -2,7 +2,7 @@ use crate::config::CONFIG;
 use crate::data::{AppData, ScanStatus, ServerStatus};
 use crate::{app, util, version};
 use iced::widget::{Button, Column, Container, Row, Text, TextInput};
-use iced::window::Icon;
+use iced::window::icon;
 use iced::{
     subscription, theme, window, Application, Command, Element, Renderer, Settings, Subscription,
 };
@@ -19,7 +19,7 @@ pub fn start(data: Arc<Mutex<AppData>>) {
     info!("start gui");
 
     let icon = Some(
-        Icon::from_file_data(
+        icon::from_file_data(
             include_bytes!("../assets/images/icon.png"),
             Some(ImageFormat::Png),
         )
@@ -163,14 +163,10 @@ impl Application for Gui {
         let label_width = 60;
         let dir_label = Text::new("文件夹").width(label_width);
         let dir_input: TextInput<Message> =
-            TextInput::new("", &CONFIG.dir, |_s| -> Message { Message::Noop })
-                .width(calc_dir_input_width());
+            TextInput::new("", &CONFIG.dir).width(calc_dir_input_width());
         let port_label = Text::new("端口").width(label_width);
         let port_input: TextInput<Message> =
-            TextInput::new("", CONFIG.port.to_string().as_str(), |_s| -> Message {
-                Message::Noop
-            })
-            .width(70);
+            TextInput::new("", CONFIG.port.to_string().as_str()).width(70);
 
         let d_guard = self.data.lock().unwrap();
         let last_scan_finish_time_text = Text::new(format_last_scan_finish_time(
