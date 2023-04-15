@@ -13,6 +13,7 @@ lazy_static! {
 #[derive(Deserialize, Debug)]
 pub struct Config {
     pub log_level: String,
+    pub gui: bool,
     pub port: u16,
     pub dir: String,
     pub title: String,
@@ -94,6 +95,8 @@ pub fn init_config() -> Config {
 
 fn set_default(b: ConfigBuilder<DefaultState>) -> ConfigBuilder<DefaultState> {
     b.set_default("log_level", "TRACE")
+        .unwrap()
+        .set_default("gui", true)
         .unwrap()
         .set_default("port", 8080)
         .unwrap()

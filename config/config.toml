@@ -1,5 +1,7 @@
 log_level = 'OFF'
 
+gui = true
+
 port = 8080
 
 dir = '/tmp/test'

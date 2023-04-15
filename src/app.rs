@@ -26,9 +26,13 @@ pub fn start() {
         scanner.start(d1);
     });
 
-    thread::spawn(move || {
+    let api_thread = thread::spawn(move || {
         api::start(d2);
     });
 
-    gui::start(d3);
+    if CONFIG.gui {
+        gui::start(d3);
+    }
+
+    api_thread.join().unwrap();
 }
