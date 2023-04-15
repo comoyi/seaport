@@ -33,7 +33,7 @@ impl Scanner {
         info!("start scanner");
 
         let (tx, rx) = std::sync::mpsc::channel::<Event>();
-        self.start_watcher(tx);
+        self.start_watcher(tx.clone());
         self.start_worker(data, rx);
     }
 
