@@ -57,16 +57,16 @@ jobs:
 #          retention-days: 2
 #          if-no-files-found: error
 
-#      - name: Build Linux x86_64-unknown-linux-musl
-#        run: cross build --release --target x86_64-unknown-linux-musl
-#
-#      - name: Upload Linux x86_64-unknown-linux-musl
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: ${{ env.X_APP_NAME }}-${{ env.X_APP_VERSION }}-x86_64-unknown-linux-musl
-#          path: target/x86_64-unknown-linux-musl/release/${{ env.X_APP_NAME }}
-#          retention-days: 2
-#          if-no-files-found: error
+      - name: Build Linux x86_64-unknown-linux-musl
+        run: cross build --release --target x86_64-unknown-linux-musl
+
+      - name: Upload Linux x86_64-unknown-linux-musl
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.X_APP_NAME }}-${{ env.X_APP_VERSION }}-x86_64-unknown-linux-musl
+          path: target/x86_64-unknown-linux-musl/release/${{ env.X_APP_NAME }}
+          retention-days: 2
+          if-no-files-found: error
 
   build-windows:
     runs-on: ubuntu-latest
@@ -102,8 +102,7 @@ jobs:
           unzip HarmonyOS_Sans.zip
           mkdir -p /usr/local/share/fonts
           sudo cp HarmonyOS\ Sans/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf /usr/local/share/fonts
-          cp HarmonyOS\ Sans/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf fonts
-          ls -lh fonts
+          cp HarmonyOS\ Sans/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf assets/fonts
 
       - name: Build Windows x86_64-pc-windows-gnu
         run: |
