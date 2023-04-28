@@ -1,4 +1,5 @@
 mod announcement;
+mod banner;
 mod download;
 mod files;
 mod index;

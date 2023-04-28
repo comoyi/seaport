@@ -1,5 +1,6 @@
 log_level = 'OFF'
 
+# GUI true / false
 gui = true
 
 port = 8080
@@ -13,6 +14,7 @@ announcement = '''
 欢迎
 '''
 
+# DataNode
 [[data_nodes]]
 name = 'Server-1'
 [data_nodes.address]
@@ -26,3 +28,12 @@ name = 'Server-2'
 protocol = 'http'
 host = '127.0.0.1'
 port = 8082
+
+# Banner
+[[banners]]
+image_url = ''
+description = ''
+
+[[banners]]
+image_url = ''
+description = ''

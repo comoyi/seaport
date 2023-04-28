@@ -19,6 +19,7 @@ pub struct Config {
     pub title: String,
     pub announcement: String,
     pub data_nodes: Vec<DataNode>,
+    pub banners: Vec<Banner>,
 }
 
 impl Config {
@@ -56,6 +57,21 @@ pub struct Address {
 impl Address {
     pub fn to_address_string(&self) -> String {
         format!("{}://{}:{}", self.protocol, self.host, self.port)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Banner {
+    pub image_url: String,
+    pub description: String,
+}
+
+impl Banner {
+    pub fn new(url: &str, description: &str) -> Self {
+        Self {
+            image_url: url.to_string(),
+            description: description.to_string(),
+        }
     }
 }
 
