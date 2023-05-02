@@ -148,7 +148,7 @@ impl Scanner {
 
                         debug!("abs_path: {}, rel_path: {}", absolute_path, relative_path);
                         let mut file = FileInfo::new();
-                        file.relative_path = relative_path.to_string();
+                        file.relative_path = convert_dir_separator(&relative_path);
                         file.file_type = file_type;
                         file.size = size;
                         file.hash = hash_sum;
@@ -232,4 +232,8 @@ async fn async_watch<P: AsRef<Path>>(path: P, tx: Sender<Event>) -> notify::Resu
     }
 
     Ok(())
+}
+
+fn convert_dir_separator(s: &str) -> String {
+    s.replace("\\", "/").to_string()
 }
