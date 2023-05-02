@@ -16,7 +16,21 @@ pub struct DownloadQuery {
     file: String,
 }
 
-pub async fn download(
+pub async fn download(Query(q): Query<DownloadQuery>, headers: HeaderMap) -> Response {
+    let relative_file_path = q.file;
+    let range_o = headers.get(header::RANGE);
+    let mut range_option = None;
+    if range_o.is_some() {
+        let range = range_o
+            .and_then(|v| v.to_str().ok())
+            .map(|v| v.to_string())
+            .unwrap();
+        range_option = Some(range);
+    }
+    do_download(relative_file_path, range_option).await
+}
+
+pub async fn download_path(
     QueryPath(relative_file_path): QueryPath<String>,
     headers: HeaderMap,
 ) -> Response {
@@ -31,6 +45,7 @@ pub async fn download(
     }
     do_download(relative_file_path, range_option).await
 }
+
 pub async fn download_legacy(Query(q): Query<DownloadQuery>) -> Response {
     do_download(q.file, None).await
 }

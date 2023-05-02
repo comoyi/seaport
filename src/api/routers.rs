@@ -1,6 +1,6 @@
 use crate::api::announcement::announcement;
 use crate::api::banner::banner;
-use crate::api::download::{download, download_legacy};
+use crate::api::download::{download, download_legacy, download_path};
 use crate::api::files::files;
 use crate::api::index::index;
 use crate::api::info::info;
@@ -15,7 +15,9 @@ pub fn create_router(data: Arc<Mutex<AppData>>) -> Router {
         .route("/files", get(files))
         .route("/sync", get(download_legacy))
         .route("/api/v1/info", get(info))
-        .route("/api/v1/download/*relative_file_path", get(download))
+        .route("/api/v1/files", get(files))
+        .route("/api/v1/download", get(download))
+        .route("/api/v1/download/*relative_file_path", get(download_path))
         .route("/api/v1/announcement", get(announcement))
         .route("/api/v1/banner", get(banner))
         .with_state(data)
