@@ -32,7 +32,7 @@ pub fn start() {
 
     if CONFIG.gui {
         gui::start(d3);
+    } else {
+        api_thread.join().unwrap();
     }
-
-    api_thread.join().unwrap();
 }
