@@ -1,10 +1,11 @@
 use crate::config::CONFIG;
 use crate::data::{AppData, ScanStatus, ServerStatus};
 use crate::{app, util, version};
-use iced::widget::{Button, Column, Container, Row, Text, TextInput};
+use iced::widget::{Button, Column, Container, Row, Scrollable, Text, TextInput};
 use iced::window::icon;
 use iced::{
-    subscription, theme, window, Application, Command, Element, Renderer, Settings, Subscription,
+    subscription, theme, window, Application, Command, Element, Length, Renderer, Settings,
+    Subscription,
 };
 use iced_aw::menu::{MenuBar, MenuTree};
 use iced_aw::{menu, Card, Modal};
@@ -27,7 +28,7 @@ pub fn start(data: Arc<Mutex<AppData>>) {
     );
     let _ = Gui::run(Settings {
         window: window::Settings {
-            size: (680, 280),
+            size: (750, 360),
             position: window::Position::Centered,
             resizable: true,
             decorations: true,
@@ -243,7 +244,13 @@ impl Application for Gui {
             .padding(default_padding)
             .push(last_scan_finish_time_text);
 
-        let ann_card = Card::new("公告", CONFIG.announcement.as_str()).max_width(350.0);
+        let ann_card = Card::new(
+            Text::new("公告"),
+            Scrollable::new(Text::new(CONFIG.announcement.clone()))
+                .width(Length::Fill)
+                .height(Length::Fill),
+        )
+        .max_height(320.0);
 
         let opt_c = Column::new()
             .push(modal_about)
