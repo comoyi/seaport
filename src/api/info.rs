@@ -1,15 +1,18 @@
 use crate::config::{Address, DataNode, CONFIG};
+use crate::version;
 use axum::http::header::CONTENT_TYPE;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 
 #[derive(Serialize, Default)]
 struct InfoVo {
+    version_no: u32,
     data_nodes: Vec<DataNode>,
 }
 
 pub async fn info() -> impl IntoResponse {
     let mut vo = InfoVo::default();
+    vo.version_no = version::VERSION_NO;
     let mut data_nodes = vec![];
     for x in &CONFIG.data_nodes {
         let data_node = DataNode {

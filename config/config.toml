@@ -3,14 +3,17 @@ log_level = 'OFF'
 # GUI true / false
 gui = true
 
+# Api port
 port = 8080
 
+# Source Dir
 dir = '/tmp/test'
 
+# Sub title
 title = ''
 
+# Announcement
 announcement = '''
-公告
 欢迎
 '''
 
@@ -32,8 +35,8 @@ port = 8082
 # Banner
 [[banners]]
 image_url = ''
-description = ''
+description = 'Banner-1'
 
 [[banners]]
 image_url = ''
-description = ''
+description = 'Banner-2'
