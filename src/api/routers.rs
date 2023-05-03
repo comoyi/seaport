@@ -14,6 +14,7 @@ pub fn create_router(data: Arc<Mutex<AppData>>) -> Router {
         .route("/", get(index))
         .route("/files", get(files))
         .route("/sync", get(download_legacy))
+        .route("/announcement", get(announcement))
         .route("/api/v1/info", get(info))
         .route("/api/v1/files", get(files))
         .route("/api/v1/download", get(download))
