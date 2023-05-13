@@ -1,11 +1,14 @@
 # Valheim Server Toolkit
 
-![app image](./images/app.png)
+![app image](./assets/images/preview.png)
 
 This is server
 
-[server Rust ver.](https://github.com/comoyi/seaport)
+[Client Rust ver.](https://github.com/comoyi/ship)
 
-[server Go ver.](https://github.com/comoyi/valheim-syncer-server)
+[Server Rust ver.](https://github.com/comoyi/seaport)
 
-[client](https://github.com/comoyi/valheim-launcher)
+[Client Go ver.](https://github.com/comoyi/valheim-launcher)
+
+[Server Go ver.](https://github.com/comoyi/valheim-syncer-server)
+

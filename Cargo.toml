@@ -13,15 +13,17 @@ config = "0.13.3"
 log = "0.4.17"
 env_logger = "0.10.0"
 chrono = "0.4.24"
-iced = "0.8.0"
-iced_aw = { version = "0.4.1", default-features = false, features = ["menu", "modal", "card"] }
-serde = {version="1.0.156", features = ["derive"]}
-serde_json = "1.0.94"
-serde_repr = "0.1.11"
-futures = "0.3.27"
+iced = { version = "0.9.0", features = ["image"] }
+iced_aw = { version = "0.5.0", default-features = false, features = ["menu", "modal", "card"] }
+serde = { version="1.0.160", features = ["derive"] }
+serde_json = "1.0.96"
+serde_repr = "0.1.12"
+futures = "0.3.28"
 md5 = "0.7.0"
 walkdir = "2.3.3"
 notify = "5.1.0"
-tokio = { version = "1.26.0", features = ["full"] }
-axum = "0.6.11"
+tokio = { version = "1.27.0", features = ["full"] }
+tokio-util = { version = "0.7.7", features = ["io"] }
+axum = "0.6.15"
 lazy_static = "1.4.0"
+image = "0.24.6"

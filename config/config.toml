@@ -1,12 +1,42 @@
 log_level = 'OFF'
 
+# GUI true / false
+gui = true
+
+# Api port
 port = 8080
 
-dir = '/tmp'
+# Source Dir
+dir = '/tmp/test'
 
+# Sub title
 title = ''
 
+# Announcement
 announcement = '''
-公告
 欢迎
 '''
+
+# DataNode
+[[data_nodes]]
+name = 'Server-1'
+[data_nodes.address]
+protocol = 'http'
+host = '127.0.0.1'
+port = 8080
+
+[[data_nodes]]
+name = 'Server-2'
+[data_nodes.address]
+protocol = 'http'
+host = '127.0.0.1'
+port = 8082
+
+# Banner
+[[banners]]
+image_url = ''
+description = 'Banner-1'
+
+[[banners]]
+image_url = ''
+description = 'Banner-2'

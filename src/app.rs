@@ -1,5 +1,5 @@
 use crate::config::CONFIG;
-use crate::data::AppData;
+use crate::data::{AppData, ServerStatus};
 use crate::scanner::Scanner;
 use crate::{api, gui};
 use log::info;
@@ -12,6 +12,7 @@ pub fn start() {
     info!("start app");
 
     let mut app_data = AppData::new();
+    app_data.server_status = ServerStatus::Started;
     app_data.announcement.content = CONFIG.announcement.to_string();
     let d = Arc::new(Mutex::new(app_data));
     let d1 = Arc::clone(&d);
@@ -25,9 +26,13 @@ pub fn start() {
         scanner.start(d1);
     });
 
-    thread::spawn(move || {
+    let api_thread = thread::spawn(move || {
         api::start(d2);
     });
 
-    gui::start(d3);
+    if CONFIG.gui {
+        gui::start(d3);
+    } else {
+        api_thread.join().unwrap();
+    }
 }

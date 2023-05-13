@@ -33,7 +33,7 @@ impl Scanner {
         info!("start scanner");
 
         let (tx, rx) = std::sync::mpsc::channel::<Event>();
-        self.start_watcher(tx);
+        self.start_watcher(tx.clone());
         self.start_worker(data, rx);
     }
 
@@ -47,7 +47,7 @@ impl Scanner {
                     // skip for first time
                     if is_check {
                         // block until any change
-                        while let Err(_) = rx.recv_timeout(Duration::from_secs(1)) {
+                        while rx.recv_timeout(Duration::from_secs(1)).is_err() {
                             let d_guard = data.lock().unwrap();
                             match d_guard.server_status {
                                 ServerStatus::Stopping | ServerStatus::Stopped => {
@@ -66,7 +66,7 @@ impl Scanner {
                         drop(d_guard);
 
                         // waiting for continuous change
-                        while let Ok(_) = rx.recv_timeout(Duration::from_secs(3)) {}
+                        while rx.recv_timeout(Duration::from_secs(3)).is_ok() {}
                     }
                     is_check = true;
                     let scan_res = self.scan(&self.base_path, data.clone());
@@ -118,14 +118,29 @@ impl Scanner {
                             }
                         };
                         let file_type;
+                        let mut size = 0;
                         let mut hash_sum = "".to_string();
                         if entry.path().is_symlink() {
                             file_type = FileType::Symlink;
+                            size = entry.metadata().unwrap().len();
                         } else if entry.path().is_dir() {
                             file_type = FileType::Dir;
                         } else if entry.path().is_file() {
                             file_type = FileType::File;
-                            hash_sum = util::md5_file(absolute_path);
+                            size = entry.metadata().unwrap().len();
+                            let hash_sum_r = util::md5_file(absolute_path);
+                            match hash_sum_r {
+                                Ok(h) => {
+                                    hash_sum = h;
+                                }
+                                Err(e) => {
+                                    warn!(
+                                        "calc hash failed, err: {}, rel_path: {}",
+                                        e, relative_path
+                                    );
+                                    return Err(Error::CalcHashError);
+                                }
+                            }
                         } else {
                             warn!("ignored file type, relative_path: {}", relative_path);
                             continue;
@@ -133,8 +148,9 @@ impl Scanner {
 
                         debug!("abs_path: {}, rel_path: {}", absolute_path, relative_path);
                         let mut file = FileInfo::new();
-                        file.relative_path = relative_path.to_string();
+                        file.relative_path = convert_dir_separator(&relative_path);
                         file.file_type = file_type;
+                        file.size = size;
                         file.hash = hash_sum;
                         files.push(file);
                     }
@@ -216,4 +232,8 @@ async fn async_watch<P: AsRef<Path>>(path: P, tx: Sender<Event>) -> notify::Resu
     }
 
     Ok(())
+}
+
+fn convert_dir_separator(s: &str) -> String {
+    s.replace("\\", "/").to_string()
 }

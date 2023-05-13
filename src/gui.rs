@@ -1,12 +1,15 @@
 use crate::config::CONFIG;
 use crate::data::{AppData, ScanStatus, ServerStatus};
 use crate::{app, util, version};
-use iced::widget::{Button, Column, Container, Row, Text, TextInput};
+use iced::widget::{Button, Column, Container, Row, Scrollable, Text, TextInput};
+use iced::window::icon;
 use iced::{
-    subscription, theme, window, Application, Command, Element, Renderer, Settings, Subscription,
+    subscription, theme, window, Application, Command, Element, Length, Renderer, Settings,
+    Subscription,
 };
 use iced_aw::menu::{MenuBar, MenuTree};
 use iced_aw::{menu, Card, Modal};
+use image::ImageFormat;
 use log::{info, trace};
 use std::process::exit;
 use std::sync::{Arc, Mutex};
@@ -16,15 +19,26 @@ use std::time::Duration;
 pub fn start(data: Arc<Mutex<AppData>>) {
     info!("start gui");
 
+    let icon = Some(
+        icon::from_file_data(
+            include_bytes!("../assets/images/icon.png"),
+            Some(ImageFormat::Png),
+        )
+        .unwrap(),
+    );
     let _ = Gui::run(Settings {
         window: window::Settings {
-            size: (680, 280),
+            size: (750, 380),
+            position: window::Position::Centered,
             resizable: true,
             decorations: true,
+            icon: icon,
             ..window::Settings::default()
         },
         flags: data,
-        default_font: Some(include_bytes!("../fonts/HarmonyOS_Sans_SC_Regular.ttf")),
+        default_font: Some(include_bytes!(
+            "../assets/fonts/HarmonyOS_Sans_SC_Regular.ttf"
+        )),
         ..Settings::default()
     });
 }
@@ -63,7 +77,7 @@ impl Application for Gui {
     fn title(&self) -> String {
         let mut t = format!("{} - v{}", app::APP_NAME, version::VERSION_TEXT);
         let ct = &CONFIG.title;
-        if ct.len() > 0 {
+        if !ct.is_empty() {
             t = format!("{}  {}", t, ct);
         }
         t
@@ -73,11 +87,8 @@ impl Application for Gui {
         let mut d_guard = self.data.lock().unwrap();
         match message {
             Message::StartServer => {
-                match d_guard.server_status {
-                    ServerStatus::Started => {
-                        return Command::none();
-                    }
-                    _ => {}
+                if let ServerStatus::Started = d_guard.server_status {
+                    return Command::none();
                 }
                 info!("start server...");
                 d_guard.server_status = ServerStatus::Starting;
@@ -85,11 +96,8 @@ impl Application for Gui {
                 d_guard.server_status = ServerStatus::Started;
             }
             Message::StopServer => {
-                match d_guard.server_status {
-                    ServerStatus::Stopped => {
-                        return Command::none();
-                    }
-                    _ => {}
+                if let ServerStatus::Stopped = d_guard.server_status {
+                    return Command::none();
                 }
                 info!("stop server...");
                 d_guard.server_status = ServerStatus::Stopping;
@@ -155,16 +163,11 @@ impl Application for Gui {
         let scan_text;
         let label_width = 60;
         let dir_label = Text::new("文件夹").width(label_width);
-        let dir_input: TextInput<Message> = TextInput::new("", &CONFIG.dir, |_s| -> Message {
-            return Message::Noop;
-        })
-        .width(calc_dir_input_width());
+        let dir_input: TextInput<Message> =
+            TextInput::new("", &CONFIG.dir).width(calc_dir_input_width());
         let port_label = Text::new("端口").width(label_width);
         let port_input: TextInput<Message> =
-            TextInput::new("", CONFIG.port.to_string().as_str(), |_s| -> Message {
-                return Message::Noop;
-            })
-            .width(70);
+            TextInput::new("", CONFIG.port.to_string().as_str()).width(70);
 
         let d_guard = self.data.lock().unwrap();
         let last_scan_finish_time_text = Text::new(format_last_scan_finish_time(
@@ -241,7 +244,13 @@ impl Application for Gui {
             .padding(default_padding)
             .push(last_scan_finish_time_text);
 
-        let ann_card = Card::new("公告", CONFIG.announcement.as_str()).max_width(350.0);
+        let ann_card = Card::new(
+            Text::new("公告"),
+            Scrollable::new(Text::new(CONFIG.announcement.clone()))
+                .width(Length::Fill)
+                .height(Length::Fill),
+        )
+        .max_height(320.0);
 
         let opt_c = Column::new()
             .push(modal_about)
@@ -255,8 +264,7 @@ impl Application for Gui {
 
         let c = Container::new(mc);
 
-        let content = c.into();
-        return content;
+        c.into()
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
@@ -269,7 +277,7 @@ impl Application for Gui {
 fn calc_dir_input_width() -> u16 {
     let min = 250;
     let max = 380;
-    let mut width = (&CONFIG).dir.len() as u16 * 10;
+    let mut width = CONFIG.dir.len() as u16 * 10;
     if width < min {
         width = min;
     } else if width > max {

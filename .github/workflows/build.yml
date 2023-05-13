@@ -1,0 +1,120 @@
+name: Build
+
+env:
+  X_APP_NAME: seaport
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'develop'
+
+jobs:
+  build:
+    if: false
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set env
+        run: |
+          echo "X_APP_VERSION=`cat VERSION`" >> $GITHUB_ENV
+
+      - name: Install Prerequisites
+        run: |
+          sudo apt-get install fontconfig libfontconfig-dev gcc pkg-config libfreetype6-dev libfontconfig1-dev
+          cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Cache Font
+        id: cache-font
+        uses: actions/cache@v3
+        with:
+          path: HarmonyOS_Sans.zip
+          key: cache-font-HarmonyOS_Sans-806e68b8cad06848d60da7211519c7b70a81588cdc19cec0d7238057a0726d3e
+
+      - name: Download Font
+        if: steps.cache-font.outputs.cache-hit != 'true'
+        run: |
+          wget -O HarmonyOS_Sans.zip https://communityfile-drcn.op.hicloud.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20220527115222.36009086555928047609106823953760:50530526070936:2800:E1CA794341643D6B6FFE8F1EE2DBB96B786975D088FDA18348E89FEC28135686.zip?needInitFileName=true
+
+      - name: Install Font
+        run: |
+          sha256sum HarmonyOS_Sans.zip
+          unzip HarmonyOS_Sans.zip
+          mkdir -p /usr/local/share/fonts
+          sudo cp HarmonyOS\ Sans/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf /usr/local/share/fonts
+          cp HarmonyOS\ Sans/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf assets/fonts
+
+#      - name: Build Linux x86_64-unknown-linux-gnu
+#        run: cargo build --release --target x86_64-unknown-linux-gnu
+#
+#      - name: Upload Linux x86_64-unknown-linux-gnu
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: ${{ env.X_APP_NAME }}-${{ env.X_APP_VERSION }}-x86_64-unknown-linux-gnu
+#          path: target/x86_64-unknown-linux-gnu/release/${{ env.X_APP_NAME }}
+#          retention-days: 2
+#          if-no-files-found: error
+
+      - name: Build Linux x86_64-unknown-linux-musl
+        run: cross build --release --target x86_64-unknown-linux-musl
+
+      - name: Upload Linux x86_64-unknown-linux-musl
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.X_APP_NAME }}-${{ env.X_APP_VERSION }}-x86_64-unknown-linux-musl
+          path: target/x86_64-unknown-linux-musl/release/${{ env.X_APP_NAME }}
+          retention-days: 2
+          if-no-files-found: error
+
+  build-windows:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set env
+        run: |
+          echo "X_APP_VERSION=`cat VERSION`" >> $GITHUB_ENV
+
+      - name: Install Prerequisites
+        run: |
+          sudo apt-get install fontconfig libfontconfig-dev gcc pkg-config libfreetype6-dev libfontconfig1-dev
+          sudo apt-get install gcc-mingw-w64
+          rustup target add x86_64-pc-windows-gnu
+
+      - name: Cache Font
+        id: cache-font
+        uses: actions/cache@v3
+        with:
+          path: HarmonyOS_Sans.zip
+          key: cache-font-HarmonyOS_Sans-806e68b8cad06848d60da7211519c7b70a81588cdc19cec0d7238057a0726d3e
+
+      - name: Download Font
+        if: steps.cache-font.outputs.cache-hit != 'true'
+        run: |
+          wget -O HarmonyOS_Sans.zip https://communityfile-drcn.op.hicloud.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20220527115222.36009086555928047609106823953760:50530526070936:2800:E1CA794341643D6B6FFE8F1EE2DBB96B786975D088FDA18348E89FEC28135686.zip?needInitFileName=true
+
+      - name: Install Font
+        run: |
+          sha256sum HarmonyOS_Sans.zip
+          unzip HarmonyOS_Sans.zip
+          mkdir -p /usr/local/share/fonts
+          sudo cp HarmonyOS\ Sans/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf /usr/local/share/fonts
+          cp HarmonyOS\ Sans/HarmonyOS_Sans_SC/HarmonyOS_Sans_SC_Regular.ttf assets/fonts
+
+      - name: Build Windows x86_64-pc-windows-gnu
+        run: |
+          #cargo rustc --release --target x86_64-pc-windows-gnu -- -Clink-args="-Wl,--subsystem,windows"
+          cargo build --release --target x86_64-pc-windows-gnu
+
+      - name: Upload Windows x86_64-pc-windows-gnu
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.X_APP_NAME }}-${{ env.X_APP_VERSION }}-x86_64-pc-windows-gnu
+          path: |
+            config/config.toml
+            target/x86_64-pc-windows-gnu/release/${{ env.X_APP_NAME }}.exe
+          retention-days: 2
+          if-no-files-found: error
